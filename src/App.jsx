@@ -4,9 +4,10 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: TWEAK "OVER ONS"
- * - Glow behind profile image reduced to max 5%
- * - Layout confirmed side-by-side (flex-row on desktop)
+ * STATUS: RESTORED PAGES
+ * - Restored missing 'collection' view
+ * - Restored missing 'process' view
+ * - Kept the new 'About' layout
  */
 
 const App = () => {
@@ -870,6 +871,193 @@ const App = () => {
                 </div>
               </div>
             </section>
+          </div>
+        )}
+
+        {view === 'collection' && (
+          <div className="min-h-screen pt-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="container mx-auto px-6">
+              
+              <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-4">
+                <div>
+                   <p className="text-orange-500 font-mono text-xs uppercase tracking-widest mb-2">Archive_v2.0</p>
+                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
+                     DE COLLECTIE
+                   </h1>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-400 font-mono">
+                    PAGINA {collectionPage + 1} / {totalPages}
+                  </p>
+                </div>
+              </div>
+
+              <div 
+                key={collectionPage}
+                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo ${
+                  slideDirection === 'right' ? 'slide-in-from-right-12' : 'slide-in-from-left-12'
+                }`}
+              >
+                {currentProducts.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className="group relative cursor-pointer"
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
+                      {product.color.includes('http') ? (
+                          <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700" />
+                      ) : (
+                          <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
+                      )}
+                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+                        <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
+                          <Eye className="w-4 h-4" /> Bekijk Print
+                        </button>
+                      </div>
+                      <div className="absolute top-4 left-4">
+                        <span className="bg-black/50 backdrop-blur-md text-[10px] font-mono border border-white/10 px-2 py-1 text-gray-300 uppercase">
+                          {product.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-between items-start">
+                      <div>
+                        <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors">{product.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1 font-mono">EDITIE VAN 50</p>
+                      </div>
+                      <span className="text-lg font-medium">€{product.price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center border-t border-white/10 pt-8">
+                 <button 
+                    onClick={prevPage}
+                    disabled={collectionPage === 0}
+                    className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                 >
+                    <ChevronLeft className="w-4 h-4" /> Vorige
+                 </button>
+                 <div className="flex gap-2">
+                    {[...Array(totalPages)].map((_, i) => (
+                       <button 
+                         key={i}
+                         onClick={() => goToPage(i)}
+                         className={`w-2 h-2 rounded-full transition-all duration-300 ${i === collectionPage ? 'bg-orange-500 w-8' : 'bg-gray-700 hover:bg-gray-500'}`}
+                       />
+                    ))}
+                 </div>
+                 <button 
+                    onClick={nextPage}
+                    disabled={collectionPage === totalPages - 1}
+                    className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                 >
+                    Volgende <ChevronRight className="w-4 h-4" />
+                 </button>
+              </div>
+            </div>
+
+            <div className="mt-20 bg-orange-600 text-black py-32 relative overflow-hidden group">
+               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+               <div className="absolute -top-20 -right-20 w-96 h-96 bg-black/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+               <div className="container mx-auto px-6 relative z-10 text-center animate-in fade-in zoom-in duration-500">
+                  <div className="inline-flex items-center justify-center p-3 bg-black/10 rounded-full mb-8">
+                    <Wand2 className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <h2 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-none">
+                     KUN JE JE SOUL NIET VINDEN?
+                  </h2>
+                  <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto mb-10 leading-relaxed opacity-80">
+                    Zit er niets tussen wat bij je past? No worries! Vertel ons wat je vet vind, stuur voorbeelden mee en wij gaan er mee aan de slag.
+                  </p>
+                  <button 
+                    onClick={() => setCommissionOpen(true)}
+                    className="bg-black text-white px-10 py-5 font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-3 mx-auto"
+                  >
+                    Start een Commissie <ArrowRight className="w-4 h-4" />
+                  </button>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'process' && (
+          <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
+             <div className="container mx-auto px-6">
+                <div className="text-center max-w-4xl mx-auto mb-24">
+                   <p className="text-orange-500 font-mono text-xs uppercase tracking-widest mb-4">Voorbij de Prompt</p>
+                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-none">
+                      HET ALGORITME <br/> & <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500">DE ARTIEST</span>
+                   </h1>
+                   <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
+                     Kunst genereren is makkelijk. Een <i>ziel</i> genereren is een ambacht. We combineren traditionele ontwerpprincipes met geavanceerde neurale netwerken om iets echt unieks te creëren.
+                   </p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8 mb-32">
+                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+                         <Terminal className="w-12 h-12 text-orange-500" />
+                      </div>
+                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-orange-500">01.</span> CONCEPT</h3>
+                      <p className="text-gray-400 leading-relaxed">
+                          Het begint met een visie. We typen niet zomaar woorden; we deconstrueren abstracte ideeën naar beeldtaal, puttend uit tien jaar ervaring in ontwerptheorie en fotografie.
+                      </p>
+                   </div>
+                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+                         <Cpu className="w-12 h-12 text-purple-500" />
+                      </div>
+                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-purple-500">02.</span> ENGINEERING</h3>
+                      <p className="text-gray-400 leading-relaxed">
+                          Het geheime ingrediënt. Met jarenlange kennis sinds de vroege dagen van DALL-E 1, "koken" we de perfecte prompt, met honderden iteraties om de belichting en compositie van het model te sturen.
+                      </p>
+                   </div>
+                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+                         <Printer className="w-12 h-12 text-green-500" />
+                      </div>
+                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-green-500">03.</span> AFWERKING</h3>
+                      <p className="text-gray-400 leading-relaxed">
+                          De machine is slechts het begin. We fine-tunen handmatig, doen color grading in Photoshop en upscalen naar 8K, zodat elke pixel intentioneel en print-klaar is.
+                      </p>
+                   </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8 items-center mb-32">
+                   <div className="relative h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-white/10 group">
+                      <img 
+                        src="https://www.aipostershop.nl/wp-content/uploads/2025/11/EarlyDays.jpg" 
+                        alt="Begin werk uit 2021" 
+                        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+                      
+                      <div className="absolute bottom-0 left-0 w-full p-8">
+                         <p className="font-mono text-xs text-orange-500 mb-2">EST. 2021</p>
+                         <h4 className="text-2xl font-bold">Begin werk uit 2021</h4>
+                      </div>
+                   </div>
+                   <div className="space-y-8">
+                      <h3 className="text-4xl font-bold">ONDERSTEUND DOOR ERVARING.</h3>
+                      <div className="space-y-4 text-lg text-gray-400 leading-relaxed">
+                         <p>
+                            "Ik creëer al jaren visuals met Photoshop, fotografie en videografie. Ik ben niet zomaar op de AI-trein gesprongen; ik ben erbij sinds het begin."
+                         </p>
+                         <p>
+                            Mijn achtergrond stelt me in staat de taal van de modellen vloeiend te spreken. Ik ken de nieuwste workflows, de beste modellen en precies hoe ik parameters moet aanpassen voor die specifieke esthetiek. Dit is geen automatie—het is digitale alchemie.
+                         </p>
+                      </div>
+                      <button 
+                        onClick={() => setCommissionOpen(true)}
+                        className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        Start Jouw Project <ArrowRight className="w-4 h-4" />
+                      </button>
+                   </div>
+                </div>
+             </div>
           </div>
         )}
 
