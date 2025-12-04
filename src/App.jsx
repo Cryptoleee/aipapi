@@ -4,10 +4,9 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: FIXED & OPTIMIZED
- * - Fixed structural syntax errors (unclosed header tags)
- * - Restored Home view functionality (correct buttons)
- * - Maintained optimized checkout flow
+ * STATUS: FIX "OVER ONS" CONTENT
+ * - Updated text cleaner to strip [vc_...] shortcodes from WordPress
+ * - Keeps layout and checkout logic intact
  */
 
 const App = () => {
@@ -56,7 +55,7 @@ const App = () => {
     text: "Creativiteit is de kern. Als eigenaar van Wijzijnwolf.nl ben ik dagelijks bezig met video en beeld. Ai Papi is waar die visuele ervaring en technische nieuwsgierigheid samenkomen."
   });
 
-  // Haal de tekst op uit WordPress
+  // Haal de tekst op uit WordPress en maak schoon
   useEffect(() => {
     const fetchPageData = async () => {
         try {
@@ -65,11 +64,24 @@ const App = () => {
             
             if (data && data.length > 0) {
                 const page = data[0];
-                const cleanText = page.content.rendered.replace(/<[^>]+>/g, '');
                 
+                // 1. Verwijder HTML tags (zoals <p>, <div>)
+                let cleanText = page.content.rendered.replace(/<[^>]+>/g, '');
+                
+                // 2. Verwijder Shortcodes (alles tussen [ en ]) - DIT LOST JE BUG OP
+                cleanText = cleanText.replace(/\[.*?\]/g, '');
+                
+                // 3. Verwijder dubbele witregels die achterblijven
+                cleanText = cleanText.replace(/\s+/g, ' ').trim();
+                
+                // Fallback als de pagina leeg is na opschonen
+                if (cleanText.length < 5) {
+                    cleanText = "Tekst kon niet geladen worden vanuit WordPress. Controleer de pagina content.";
+                }
+
                 setAboutContent({
                     title: page.title.rendered,
-                    text: cleanText || page.content.rendered
+                    text: cleanText
                 });
             }
         } catch (err) {
