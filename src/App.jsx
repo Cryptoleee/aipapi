@@ -1515,7 +1515,7 @@ const App = () => {
                             <div className="p-2 bg-white/10 rounded-full border border-white/10"><Instagram className="w-4 h-4 text-white" /></div>
                             <span className="text-xs font-mono text-orange-500 uppercase tracking-widest">@aipapiprints</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white">VISUAL FEED</h2>
+                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white">INSTA FEED</h2>
                     </div>
                     <a 
                         href="https://www.instagram.com/aipapiprints/" 
