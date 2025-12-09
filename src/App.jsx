@@ -4,11 +4,88 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: RESTORED PAGES
- * - Restored missing 'collection' view
- * - Restored missing 'process' view
- * - Kept the new 'About' layout
+ * STATUS: MOBILE OPTIMIZATION
+ * - Implemented Smart ProductCard with auto-hiding overlay (3s timer)
+ * - Fixed Mobile Modal proportions (image fitting, text sizing, padding)
+ * - Maintained all previous integrations
  */
+
+// --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
+const ProductCard = ({ product, onClick }) => {
+  const [isActive, setIsActive] = useState(false);
+  const [timer, setTimer] = useState(null);
+
+  const handleTouch = () => {
+    // Mobile: Show overlay, then hide after 3 seconds
+    setIsActive(true);
+    
+    if (timer) clearTimeout(timer);
+    
+    const newTimer = setTimeout(() => {
+      setIsActive(false);
+    }, 3000);
+    
+    setTimer(newTimer);
+  };
+
+  const handleMouseEnter = () => {
+    // Desktop: Keep active while hovering
+    if (timer) clearTimeout(timer);
+    setIsActive(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Desktop: Hide immediately when leaving
+    if (timer) clearTimeout(timer);
+    setIsActive(false);
+  };
+
+  return (
+    <div 
+      className="group relative cursor-pointer"
+      onClick={() => onClick(product)}
+      onTouchStart={handleTouch}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
+        {product.color.includes('http') ? (
+          <img 
+            src={product.color} 
+            alt={product.title} 
+            className="absolute inset-0 w-full h-full object-cover opacity-100 transition-all duration-700" 
+            style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}
+          />
+        ) : (
+          <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
+        )}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        
+        {/* Smart Overlay: Controlled by React State instead of CSS :hover */}
+        <div 
+          className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
+            <Eye className="w-4 h-4" /> Bekijk Print
+          </button>
+        </div>
+        
+        <div className="absolute top-4 left-4">
+          <span className="bg-black/50 backdrop-blur-md text-[10px] font-mono border border-white/10 px-2 py-1 text-gray-300 uppercase">
+            {product.category}
+          </span>
+        </div>
+      </div>
+      <div className="mt-4 flex justify-between items-start">
+        <div>
+          <h3 className={`text-xl font-bold transition-colors ${isActive ? 'text-orange-500' : 'text-white'}`}>{product.title}</h3>
+          <p className="text-xs text-gray-500 mt-1 font-mono">EDITIE VAN 50</p>
+        </div>
+        <span className="text-lg font-medium">€{product.price}</span>
+      </div>
+    </div>
+  );
+};
 
 const App = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -69,7 +146,7 @@ const App = () => {
                 // 1. Verwijder HTML tags (zoals <p>, <div>)
                 let cleanText = page.content.rendered.replace(/<[^>]+>/g, '');
                 
-                // 2. Verwijder Shortcodes (alles tussen [ en ]) - DIT LOST JE BUG OP
+                // 2. Verwijder Shortcodes (alles tussen [ en ])
                 cleanText = cleanText.replace(/\[.*?\]/g, '');
                 
                 // 3. Verwijder dubbele witregels die achterblijven
@@ -736,38 +813,12 @@ const App = () => {
                   ) : (
                     /* CHANGED: Slice to 8 items for a 4x2 grid */
                     products.slice(0, 8).map((product) => (
-                      <div 
-                        key={product.id} 
-                        className="group relative cursor-pointer"
-                        onClick={() => setSelectedProduct(product)}
-                      >
-                        <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
-                          {product.color.includes('http') ? (
-                            /* Changed back to object-cover to fill the thumbnail */
-                            <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-105 transition-all duration-700" />
-                          ) : (
-                            <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
-                          )}
-                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                            <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
-                              <Eye className="w-4 h-4" /> Bekijk Print
-                            </button>
-                          </div>
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-black/50 backdrop-blur-md text-[10px] font-mono border border-white/10 px-2 py-1 text-gray-300 uppercase">
-                              {product.category}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-4 flex justify-between items-start">
-                          <div>
-                            <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors">{product.title}</h3>
-                            <p className="text-xs text-gray-500 mt-1 font-mono">EDITIE VAN 50</p>
-                          </div>
-                          <span className="text-lg font-medium">€{product.price}</span>
-                        </div>
-                      </div>
+                        // USE THE NEW PRODUCT CARD COMPONENT
+                        <ProductCard 
+                            key={product.id}
+                            product={product}
+                            onClick={setSelectedProduct}
+                        />
                     ))
                   )}
                 </div>
@@ -902,38 +953,12 @@ const App = () => {
                 }`}
               >
                 {currentProducts.map((product) => (
-                  <div 
-                    key={product.id} 
-                    className="group relative cursor-pointer"
-                    onClick={() => setSelectedProduct(product)}
-                  >
-                    <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
-                      {product.color.includes('http') ? (
-                          /* Changed back to object-cover to fill the thumbnail */
-                          <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-105 transition-all duration-700" />
-                      ) : (
-                          <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
-                      )}
-                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                        <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
-                          <Eye className="w-4 h-4" /> Bekijk Print
-                        </button>
-                      </div>
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-black/50 backdrop-blur-md text-[10px] font-mono border border-white/10 px-2 py-1 text-gray-300 uppercase">
-                          {product.category}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors">{product.title}</h3>
-                        <p className="text-xs text-gray-500 mt-1 font-mono">EDITIE VAN 50</p>
-                      </div>
-                      <span className="text-lg font-medium">€{product.price}</span>
-                    </div>
-                  </div>
+                    // USE PRODUCT CARD HERE TOO
+                    <ProductCard 
+                        key={product.id}
+                        product={product}
+                        onClick={setSelectedProduct}
+                    />
                 ))}
               </div>
 
@@ -1601,8 +1626,8 @@ const App = () => {
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
           <div className="relative w-full max-w-5xl bg-gray-900 border border-white/10 shadow-2xl overflow-hidden grid md:grid-cols-2 rounded-lg animate-in zoom-in-[0.9] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-5 h-5" /></button>
-            <div className="relative h-64 md:h-auto w-full bg-black/20 flex items-center justify-center p-8 md:p-12">
-                <div className={`relative w-full shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ${selectedProduct.aspect} overflow-hidden bg-gray-900 group`}>
+            <div className="relative w-full bg-black/20 flex items-center justify-center p-6 md:p-12 h-96 md:h-auto">
+                <div className={`relative w-full h-full shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ${selectedProduct.aspect} overflow-hidden bg-gray-900 group`}>
                    {selectedProduct.color.includes('http') ? ( 
                      /* CHANGED: Ensure full image is visible in modal too */
                      <img src={selectedProduct.color} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-contain" /> 
@@ -1610,15 +1635,15 @@ const App = () => {
                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay pointer-events-none"></div>
                 </div>
             </div>
-            <div className="p-8 md:p-12 flex flex-col justify-center bg-gray-950/90 backdrop-blur-sm">
-               <div className="inline-block px-3 py-1 mb-6 text-[10px] font-mono border border-orange-500/30 text-orange-500 bg-orange-500/5 rounded-full uppercase tracking-widest w-max">{selectedProduct.category} Collectie</div>
-               <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight leading-none">{selectedProduct.title}</h2>
-               <p className="text-gray-400 text-lg leading-relaxed mb-8 border-l-2 border-white/10 pl-4">{selectedProduct.desc}</p>
+            <div className="p-6 md:p-12 flex flex-col justify-center bg-gray-950/90 backdrop-blur-sm">
+               <div className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] font-mono border border-orange-500/30 text-orange-500 bg-orange-500/5 rounded-full uppercase tracking-widest w-max">{selectedProduct.category} Collectie</div>
+               <h2 className="text-2xl md:text-5xl font-black mb-4 tracking-tight leading-none">{selectedProduct.title}</h2>
+               <p className="text-gray-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-8 border-l-2 border-white/10 pl-4">{selectedProduct.desc}</p>
                <div className="mt-auto space-y-6">
                  <div className="flex items-center justify-between border-b border-white/10 pb-6">
                    <div>
                        <span className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Prijs</span>
-                       <span className="text-3xl font-bold">€{currentPrice.toFixed(2)}</span>
+                       <span className="text-2xl md:text-3xl font-bold">€{currentPrice.toFixed(2)}</span>
                    </div>
                    
                    {/* UPDATED SIZE SELECTOR IN MODAL */}
