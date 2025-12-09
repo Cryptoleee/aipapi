@@ -729,11 +729,13 @@ const App = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* CHANGED: Grid to 4 columns on large screens (lg:grid-cols-4) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {isLoading ? (
                     <div className="text-white">Laden...</div>
                   ) : (
-                    products.slice(0, 6).map((product) => (
+                    /* CHANGED: Slice to 8 items for a 4x2 grid */
+                    products.slice(0, 8).map((product) => (
                       <div 
                         key={product.id} 
                         className="group relative cursor-pointer"
@@ -741,7 +743,8 @@ const App = () => {
                       >
                         <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
                           {product.color.includes('http') ? (
-                            <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700" />
+                            /* Changed back to object-cover to fill the thumbnail */
+                            <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-105 transition-all duration-700" />
                           ) : (
                             <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
                           )}
@@ -906,7 +909,8 @@ const App = () => {
                   >
                     <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
                       {product.color.includes('http') ? (
-                          <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700" />
+                          /* Changed back to object-cover to fill the thumbnail */
+                          <img src={product.color} alt={product.title} className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-105 transition-all duration-700" />
                       ) : (
                           <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
                       )}
@@ -1599,7 +1603,10 @@ const App = () => {
             <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-5 h-5" /></button>
             <div className="relative h-64 md:h-auto w-full bg-black/20 flex items-center justify-center p-8 md:p-12">
                 <div className={`relative w-full shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ${selectedProduct.aspect} overflow-hidden bg-gray-900 group`}>
-                   {selectedProduct.color.includes('http') ? ( <img src={selectedProduct.color} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-cover" /> ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${selectedProduct.color}`}></div> )}
+                   {selectedProduct.color.includes('http') ? ( 
+                     /* CHANGED: Ensure full image is visible in modal too */
+                     <img src={selectedProduct.color} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-contain" /> 
+                   ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${selectedProduct.color}`}></div> )}
                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay pointer-events-none"></div>
                 </div>
             </div>
