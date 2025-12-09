@@ -1624,18 +1624,24 @@ const App = () => {
        {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative w-full max-w-5xl bg-gray-900 border border-white/10 shadow-2xl overflow-hidden grid md:grid-cols-2 rounded-lg animate-in zoom-in-[0.9] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+          {/* UPDATED MODAL CONTAINER: Added max-h-[90vh] and flex-col for mobile scrolling */}
+          <div className="relative w-full max-w-5xl max-h-[90vh] md:max-h-none bg-gray-900 border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-2 rounded-lg animate-in zoom-in-[0.9] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+            
             <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-5 h-5" /></button>
-            <div className="relative w-full bg-black/20 flex items-center justify-center p-6 md:p-12 h-96 md:h-auto">
-                <div className={`relative w-full h-full shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] ${selectedProduct.aspect} overflow-hidden bg-gray-900 group`}>
+            
+            {/* UPDATED IMAGE SECTION: Fixed height on mobile (35vh) to ensure visibility without scrolling */}
+            <div className="relative w-full bg-black/20 flex items-center justify-center p-4 md:p-12 h-[35vh] md:h-auto flex-shrink-0">
+                {/* Removed aspect ratio class on wrapper to let it fit the container height */}
+                <div className={`relative w-full h-full shadow-2xl overflow-hidden bg-gray-900 group rounded-sm`}>
                    {selectedProduct.color.includes('http') ? ( 
-                     /* CHANGED: Ensure full image is visible in modal too */
                      <img src={selectedProduct.color} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-contain" /> 
                    ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${selectedProduct.color}`}></div> )}
                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay pointer-events-none"></div>
                 </div>
             </div>
-            <div className="p-6 md:p-12 flex flex-col justify-center bg-gray-950/90 backdrop-blur-sm">
+
+            {/* UPDATED CONTENT SECTION: Scrollable y-axis for long text on mobile */}
+            <div className="p-6 md:p-12 flex flex-col justify-center bg-gray-950/90 backdrop-blur-sm overflow-y-auto">
                <div className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] font-mono border border-orange-500/30 text-orange-500 bg-orange-500/5 rounded-full uppercase tracking-widest w-max">{selectedProduct.category} Collectie</div>
                <h2 className="text-2xl md:text-5xl font-black mb-4 tracking-tight leading-none">{selectedProduct.title}</h2>
                <p className="text-gray-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-8 border-l-2 border-white/10 pl-4">{selectedProduct.desc}</p>
