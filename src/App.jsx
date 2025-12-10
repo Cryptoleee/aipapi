@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: CONTENT CORRECTION
- * - Reverted Hero Title to "FRESH PRINTS"
- * - Reverted Hero Subtitle to original Dutch text
- * - Updated Marquee (Lichtkrant) to "UNIQUE PRINTS - ENRICH YOUR SPACE"
+ * STATUS: PHP UPLOAD INTEGRATION
+ * - Added logic to handle file selection state
+ * - Updated 'handleCommissionSubmit' to send FormData via POST to external PHP script
+ * - Linked to 'contact-upload.php' on the server
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -127,6 +127,11 @@ const App = () => {
   const [resLevel, setResLevel] = useState(0);
   const [ecoStatus, setEcoStatus] = useState('idle');
 
+  // --- UPLOAD STATE ---
+  const [commissionFile, setCommissionFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
     title: "HET MOOIE DECODEREN",
@@ -143,16 +148,13 @@ const App = () => {
             if (data && data.length > 0) {
                 const page = data[0];
                 
-                // 1. Verwijder HTML tags (zoals <p>, <div>)
+                // 1. Verwijder HTML tags
                 let cleanText = page.content.rendered.replace(/<[^>]+>/g, '');
-                
-                // 2. Verwijder Shortcodes (alles tussen [ en ])
+                // 2. Verwijder Shortcodes
                 cleanText = cleanText.replace(/\[.*?\]/g, '');
-                
-                // 3. Verwijder dubbele witregels die achterblijven
+                // 3. Verwijder dubbele witregels
                 cleanText = cleanText.replace(/\s+/g, ' ').trim();
                 
-                // Fallback als de pagina leeg is na opschonen
                 if (cleanText.length < 5) {
                     cleanText = "Tekst kon niet geladen worden vanuit WordPress. Controleer de pagina content.";
                 }
@@ -213,7 +215,7 @@ const App = () => {
       return;
     }
     
-    // Reset size to A2 if available, otherwise first available option
+    // Reset size to A2 if available
     if(selectedProduct.sizes && selectedProduct.sizes.length > 0) {
         const hasA2 = selectedProduct.sizes.some(s => s.toUpperCase() === 'A2');
         if (hasA2) {
@@ -283,15 +285,12 @@ const App = () => {
       }));
   }, [products]);
 
-  // STABLE FLOATING ITEMS (Fixes jittering on re-render)
+  // STABLE FLOATING ITEMS
   const floatingItems = useMemo(() => {
     return heroItems.map((item, i) => ({
       ...item,
-      // CHANGED: Adjusted top position to keep items higher (was 80+10, now 60+5)
-      // This prevents them from floating too much at the bottom
       top: Math.random() * 60 + 5,
       left: Math.random() * 80 + 10,
-      // CHANGED: Reduced duration to make it float MUCH faster (was 15+10, now 8+7)
       duration: 8 + Math.random() * 7,
       delay: i * 2,
       rotation: Math.random() * 40 - 20,
@@ -456,10 +455,45 @@ const App = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCommissionSubmit = (e) => {
+  // --- UPDATED UPLOAD HANDLER ---
+  const handleCommissionSubmit = async (e) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => { setCommissionOpen(false); setFormSubmitted(false); }, 2000);
+    setIsUploading(true);
+
+    const form = e.target;
+    const data = new FormData();
+    data.append('name', form.elements['name'].value);
+    data.append('email', form.elements['email'].value);
+    data.append('message', form.elements['message'].value);
+    
+    // Add file if selected
+    if (commissionFile) {
+        data.append('file', commissionFile);
+    }
+
+    try {
+        // NOTE: Make sure to upload contact-upload.php to your root folder
+        const res = await fetch(`${SITE_URL}/contact-upload.php`, {
+            method: 'POST',
+            body: data
+        });
+
+        if (res.ok) {
+             setFormSubmitted(true);
+             setTimeout(() => { 
+                 setCommissionOpen(false); 
+                 setFormSubmitted(false); 
+                 setCommissionFile(null); // Reset file
+             }, 3000);
+        } else {
+            alert("Er ging iets mis bij het versturen. Probeer het later opnieuw.");
+        }
+    } catch (err) {
+        console.error("Upload error:", err);
+        alert("Kon geen verbinding maken met de server.");
+    } finally {
+        setIsUploading(false);
+    }
   };
 
   const handleContactSubmit = (e) => {
@@ -976,168 +1010,6 @@ const App = () => {
                 </div>
               </div>
             </section>
-          </div>
-        )}
-
-        {view === 'collection' && (
-          <div className="min-h-screen pt-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="container mx-auto px-6">
-              
-              <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-4">
-                <div>
-                   <p className="text-orange-500 font-mono text-xs uppercase tracking-widest mb-2">Archive_v2.0</p>
-                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">
-                     DE COLLECTIE
-                   </h1>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400 font-mono">
-                    PAGINA {collectionPage + 1} / {totalPages}
-                  </p>
-                </div>
-              </div>
-
-              <div 
-                key={collectionPage}
-                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo ${
-                  slideDirection === 'right' ? 'slide-in-from-right-12' : 'slide-in-from-left-12'
-                }`}
-              >
-                {currentProducts.map((product) => (
-                    // USE PRODUCT CARD HERE TOO
-                    <ProductCard 
-                        key={product.id}
-                        product={product}
-                        onClick={setSelectedProduct}
-                    />
-                ))}
-              </div>
-
-              <div className="flex justify-between items-center border-t border-white/10 pt-8">
-                 <button 
-                    onClick={prevPage}
-                    disabled={collectionPage === 0}
-                    className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                 >
-                    <ChevronLeft className="w-4 h-4" /> Vorige
-                 </button>
-                 <div className="flex gap-2">
-                    {[...Array(totalPages)].map((_, i) => (
-                       <button 
-                         key={i}
-                         onClick={() => goToPage(i)}
-                         className={`w-2 h-2 rounded-full transition-all duration-300 ${i === collectionPage ? 'bg-orange-500 w-8' : 'bg-gray-700 hover:bg-gray-500'}`}
-                       />
-                    ))}
-                 </div>
-                 <button 
-                    onClick={nextPage}
-                    disabled={collectionPage === totalPages - 1}
-                    className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                 >
-                    Volgende <ChevronRight className="w-4 h-4" />
-                 </button>
-              </div>
-            </div>
-
-            <div className="mt-20 bg-orange-600 text-black py-32 relative overflow-hidden group">
-               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-               <div className="absolute -top-20 -right-20 w-96 h-96 bg-black/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
-               <div className="container mx-auto px-6 relative z-10 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="inline-flex items-center justify-center p-3 bg-black/10 rounded-full mb-8">
-                    <Wand2 className="w-6 h-6 animate-pulse" />
-                  </div>
-                  <h2 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-none">
-                     KUN JE JE SOUL NIET VINDEN?
-                  </h2>
-                  <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto mb-10 leading-relaxed opacity-80">
-                    Zit er niets tussen wat bij je past? No worries! Vertel ons wat je vet vind, stuur voorbeelden mee en wij gaan er mee aan de slag.
-                  </p>
-                  <button 
-                    onClick={() => setCommissionOpen(true)}
-                    className="bg-black text-white px-10 py-5 font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-3 mx-auto"
-                  >
-                    Start een Commissie <ArrowRight className="w-4 h-4" />
-                  </button>
-               </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'process' && (
-          <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
-             <div className="container mx-auto px-6">
-                <div className="text-center max-w-4xl mx-auto mb-24">
-                   <p className="text-orange-500 font-mono text-xs uppercase tracking-widest mb-4">Voorbij de Prompt</p>
-                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-none">
-                      HET ALGORITME <br/> & <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500">DE ARTIEST</span>
-                   </h1>
-                   <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
-                     Kunst genereren is makkelijk. Een <i>ziel</i> genereren is een ambacht. We combineren traditionele ontwerpprincipes met geavanceerde neurale netwerken om iets echt unieks te creëren.
-                   </p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-8 mb-32">
-                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
-                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
-                         <Terminal className="w-12 h-12 text-orange-500" />
-                      </div>
-                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-orange-500">01.</span> CONCEPT</h3>
-                      <p className="text-gray-400 leading-relaxed">
-                          Het begint met een visie. We typen niet zomaar woorden; we deconstrueren abstracte ideeën naar beeldtaal, puttend uit tien jaar ervaring in ontwerptheorie en fotografie.
-                      </p>
-                   </div>
-                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
-                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
-                         <Cpu className="w-12 h-12 text-purple-500" />
-                      </div>
-                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-purple-500">02.</span> ENGINEERING</h3>
-                      <p className="text-gray-400 leading-relaxed">
-                          Het geheime ingrediënt. Met jarenlange kennis sinds de vroege dagen van DALL-E 1, "koken" we de perfecte prompt, met honderden iteraties om de belichting en compositie van het model te sturen.
-                      </p>
-                   </div>
-                   <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
-                      <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
-                         <Printer className="w-12 h-12 text-green-500" />
-                      </div>
-                      <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-green-500">03.</span> AFWERKING</h3>
-                      <p className="text-gray-400 leading-relaxed">
-                          De machine is slechts het begin. We fine-tunen handmatig, doen color grading in Photoshop en upscalen naar 8K, zodat elke pixel intentioneel en print-klaar is.
-                      </p>
-                   </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-8 items-center mb-32">
-                   <div className="relative h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-white/10 group">
-                      <img 
-                        src="https://www.aipostershop.nl/wp-content/uploads/2025/11/EarlyDays.jpg" 
-                        alt="Begin werk uit 2021" 
-                        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
-                      
-                      <div className="absolute bottom-0 left-0 w-full p-8">
-                         <p className="font-mono text-xs text-orange-500 mb-2">EST. 2021</p>
-                         <h4 className="text-2xl font-bold">Begin werk uit 2021</h4>
-                      </div>
-                   </div>
-                   <div className="space-y-8">
-                      <h3 className="text-4xl font-bold">ONDERSTEUND DOOR ERVARING.</h3>
-                      <div className="space-y-4 text-lg text-gray-400 leading-relaxed">
-                         <p>
-                            "Ik creëer al jaren visuals met Photoshop, fotografie en videografie. Ik ben niet zomaar op de AI-trein gesprongen; ik ben erbij sinds het begin."
-                         </p>
-                         <p>
-                            Mijn achtergrond stelt me in staat de taal van de modellen vloeiend te spreken. Ik ken de nieuwste workflows, de beste modellen en precies hoe ik parameters moet aanpassen voor die specifieke esthetiek. Dit is geen automatie—het is digitale alchemie.
-                         </p>
-                      </div>
-                      <button 
-                        onClick={() => setCommissionOpen(true)}
-                        className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
-                      >
-                        Start Jouw Project <ArrowRight className="w-4 h-4" />
-                      </button>
-                   </div>
-                </div>
-             </div>
           </div>
         )}
 
@@ -1790,12 +1662,40 @@ const App = () => {
                  <div className="flex justify-between items-start mb-8"><div><h3 className="text-2xl font-black">START EEN COMMISSIE</h3><p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Op Maat Gemaakte 1/1 Art Generatie</p></div><button type="button" onClick={() => setCommissionOpen(false)} className="text-gray-400 hover:text-white transition-colors"><X className="w-6 h-6" /></button></div>
                  <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Naam</label><input required type="text" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="Jane Doe" /></div>
-                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">E-mail</label><input required type="email" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="jane@example.com" /></div>
+                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Naam</label><input required name="name" type="text" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="Jane Doe" /></div>
+                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">E-mail</label><input required name="email" type="email" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="jane@example.com" /></div>
                     </div>
-                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Visie / Bericht</label><textarea required rows={4} className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors resize-none" placeholder="Beschrijf de sfeer, kleuren en stijl die je zoekt..." /></div>
-                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Referentiebeelden (Optioneel)</label><div className="border-2 border-dashed border-white/10 rounded-sm p-8 flex flex-col items-center justify-center text-gray-500 hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors cursor-pointer group"><Upload className="w-8 h-8 mb-3 group-hover:text-orange-500 transition-colors" /><p className="text-sm">Klik om te uploaden of sleep hierheen</p><p className="text-[10px] mt-1">JPG, PNG, WEBP (Max 10MB)</p></div></div>
-                    <button className="w-full bg-white text-black font-bold uppercase tracking-wider py-4 mt-4 hover:bg-orange-500 hover:text-white transition-all duration-300">Verstuur Aanvraag</button>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Visie / Bericht</label><textarea required name="message" rows={4} className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors resize-none" placeholder="Beschrijf de sfeer, kleuren en stijl die je zoekt..." /></div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Referentiebeelden (Optioneel)</label>
+                        <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-white/10 rounded-sm p-8 flex flex-col items-center justify-center text-gray-500 hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors cursor-pointer group relative">
+                            {/* Hidden file input */}
+                            <input 
+                                type="file" 
+                                name="file"
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={(e) => setCommissionFile(e.target.files[0])} 
+                            />
+                            
+                            {commissionFile ? (
+                                <div className="text-center">
+                                    <Check className="w-8 h-8 mb-3 text-green-500 mx-auto" />
+                                    <p className="text-sm text-white font-bold">{commissionFile.name}</p>
+                                    <p className="text-[10px] mt-1 text-gray-400">Klik om te wijzigen</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <Upload className="w-8 h-8 mb-3 group-hover:text-orange-500 transition-colors" />
+                                    <p className="text-sm">Klik om te uploaden of sleep hierheen</p>
+                                    <p className="text-[10px] mt-1">JPG, PNG, WEBP (Max 10MB)</p>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <button disabled={isUploading} className="w-full bg-white text-black font-bold uppercase tracking-wider py-4 mt-4 hover:bg-orange-500 hover:text-white transition-all duration-300 flex justify-center items-center gap-2">
+                        {isUploading ? <>Versturen... <Loader2 className="w-4 h-4 animate-spin" /></> : "Verstuur Aanvraag"}
+                    </button>
                  </div>
                </form>
              )}
