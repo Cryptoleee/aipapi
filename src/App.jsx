@@ -4,11 +4,9 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: FULL REBUILD
- * - Includes ALL pages (Home, Collection, Process, About, Checkout)
- * - Includes PHP Upload Logic for Commission Form
- * - Includes Mobile fixes & Animation tweaks
- * - Includes Correct Content (Fresh Prints hero, Unique Prints marquee)
+ * STATUS: GLOW UPDATE
+ * - Increased mouse-follow glow intensity (from 0.15 to 0.6 alpha)
+ * - Maintained all other functionalities
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -637,8 +635,8 @@ const App = () => {
           <div 
             className="absolute inset-0 opacity-40 mix-blend-screen transition-opacity duration-300"
             style={{
-              // Reduced opacity from 0.5 to 0.15 for a subtler glow
-              background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 100, 0, 0.15), transparent 40%)`
+              // Increased mouse glow intensity
+              background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 100, 0, 0.6), transparent 40%)`
             }}
           />
           {/* Reduced opacity and blur for the side glow */}
