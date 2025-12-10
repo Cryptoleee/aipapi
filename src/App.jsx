@@ -1709,14 +1709,14 @@ const App = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
           {/* UPDATED MODAL CONTAINER: Black tones, larger image area */}
-          <div className="relative w-full max-w-6xl max-h-[100vh] md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+          <div className="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
             
             <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group">
                 <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
             </button>
             
             {/* UPDATED IMAGE SECTION: Spans 7 cols, less padding for bigger visual */}
-            <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden">
+            <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden shrink-0">
                 {/* Background blurring effect for atmosphere */}
                 {selectedProduct.color.includes('http') && (
                      <img src={selectedProduct.color} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl scale-125 pointer-events-none" />
@@ -1733,7 +1733,7 @@ const App = () => {
             </div>
 
             {/* UPDATED CONTENT SECTION: Spans 5 cols, deep black theme */}
-            <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto">
+            <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
                <div className="flex items-center gap-3 mb-6">
                     <div className="px-3 py-1 text-[10px] font-mono border border-white/20 text-white bg-white/5 rounded-full uppercase tracking-widest">{selectedProduct.category}</div>
                     {/* Fake stock indicator */}
@@ -1753,13 +1753,13 @@ const App = () => {
                        <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
                        <div className="text-right">
                           <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
-                          <div className="flex gap-1">
+                          <div className="flex gap-2 justify-end flex-wrap">
                              {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
                                 selectedProduct.sizes.map(size => (
                                    <button
                                      key={size}
                                      onClick={() => setSelectedSize(size)}
-                                     className={`w-10 h-10 flex items-center justify-center text-xs font-bold border transition-all duration-300 ${
+                                     className={`h-10 px-4 min-w-[3rem] w-auto flex items-center justify-center text-xs font-bold border transition-all duration-300 whitespace-nowrap ${
                                        selectedSize === size 
                                          ? 'border-white bg-white text-black' 
                                          : 'border-white/20 text-gray-500 hover:border-white/50 hover:text-white'
@@ -1770,8 +1770,8 @@ const App = () => {
                                 ))
                              ) : (
                                 <>
-                                  <button onClick={() => setSelectedSize('A1')} className={`w-10 h-10 border transition-all ${selectedSize === 'A1' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A1</button>
-                                  <button onClick={() => setSelectedSize('A2')} className={`w-10 h-10 border transition-all ${selectedSize === 'A2' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A2</button>
+                                  <button onClick={() => setSelectedSize('A1')} className={`h-10 px-4 w-auto border transition-all ${selectedSize === 'A1' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A1</button>
+                                  <button onClick={() => setSelectedSize('A2')} className={`h-10 px-4 w-auto border transition-all ${selectedSize === 'A2' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A2</button>
                                 </>
                              )}
                           </div>
