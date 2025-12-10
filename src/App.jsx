@@ -1706,77 +1706,107 @@ const App = () => {
 
       {/* --- MODALS --- */}
        {selectedProduct && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
-          {/* UPDATED MODAL CONTAINER: Added max-h-[90vh] and flex-col for mobile scrolling */}
-          <div className="relative w-full max-w-5xl max-h-[90vh] md:max-h-none bg-gray-900 border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-2 rounded-lg animate-in zoom-in-[0.9] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
+          {/* UPDATED MODAL CONTAINER: Black tones, larger image area */}
+          <div className="relative w-full max-w-6xl max-h-[100vh] md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
             
-            <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors backdrop-blur-md border border-white/10"><X className="w-5 h-5" /></button>
+            <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group">
+                <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+            </button>
             
-            {/* UPDATED IMAGE SECTION: Fixed height on mobile (35vh) to ensure visibility without scrolling */}
-            <div className="relative w-full bg-black/20 flex items-center justify-center p-4 md:p-12 h-[35vh] md:h-auto flex-shrink-0">
-                {/* Removed aspect ratio class on wrapper to let it fit the container height */}
-                <div className={`relative w-full h-full shadow-2xl overflow-hidden bg-gray-900 group rounded-sm`}>
-                   {selectedProduct.color.includes('http') ? ( 
-                     <img src={selectedProduct.color} alt={selectedProduct.title} className="absolute inset-0 w-full h-full object-contain" /> 
-                   ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${selectedProduct.color}`}></div> )}
-                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay pointer-events-none"></div>
+            {/* UPDATED IMAGE SECTION: Spans 7 cols, less padding for bigger visual */}
+            <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden">
+                {/* Background blurring effect for atmosphere */}
+                {selectedProduct.color.includes('http') && (
+                     <img src={selectedProduct.color} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-2xl scale-125 pointer-events-none" />
+                )}
+                
+                {/* Main Image - Maximized size */}
+                <div className={`relative w-full h-full md:h-[90%] p-4 md:p-8 flex items-center justify-center z-10`}>
+                   <div className={`relative w-auto h-full max-w-full shadow-2xl rounded-sm overflow-hidden border border-white/5 group`}>
+                       {selectedProduct.color.includes('http') ? ( 
+                         <img src={selectedProduct.color} alt={selectedProduct.title} className="w-full h-full object-contain" /> 
+                       ) : ( <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div> )}
+                   </div>
                 </div>
             </div>
 
-            {/* UPDATED CONTENT SECTION: Scrollable y-axis for long text on mobile */}
-            <div className="p-6 md:p-12 flex flex-col justify-center bg-gray-950/90 backdrop-blur-sm overflow-y-auto">
-               <div className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] font-mono border border-orange-500/30 text-orange-500 bg-orange-500/5 rounded-full uppercase tracking-widest w-max">{selectedProduct.category} Collectie</div>
-               <h2 className="text-2xl md:text-5xl font-black mb-4 tracking-tight leading-none">{selectedProduct.title}</h2>
-               <p className="text-gray-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-8 border-l-2 border-white/10 pl-4">{selectedProduct.desc}</p>
-               <div className="mt-auto space-y-6">
-                 <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                   <div>
-                       <span className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Prijs</span>
-                       <span className="text-2xl md:text-3xl font-bold">€{currentPrice.toFixed(2)}</span>
-                   </div>
-                   
-                   {/* UPDATED SIZE SELECTOR IN MODAL */}
-                   <div className="text-right">
-                      <span className="block text-xs text-gray-500 uppercase tracking-wider mb-2">Kies Formaat</span>
-                      <div className="flex gap-2 justify-end">
-                         {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                            selectedProduct.sizes.map(size => (
-                               <button
-                                 key={size}
-                                 onClick={() => setSelectedSize(size)}
-                                 className={`px-3 py-1 border text-xs font-mono transition-all duration-300 ${
-                                   selectedSize === size 
-                                     ? 'border-orange-500 bg-orange-500/10 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]' 
-                                     : 'border-white/20 text-gray-400 hover:border-white/50 hover:text-white'
-                                 }`}
-                               >
-                                 {size}
-                               </button>
-                            ))
-                         ) : (
-                            // Fallback buttons if no sizes found in data
-                            <>
-                              <button onClick={() => setSelectedSize('A1')} className={`px-3 py-1 border text-xs font-mono transition-all ${selectedSize === 'A1' ? 'border-orange-500 text-white' : 'border-white/20 text-gray-400'}`}>A1</button>
-                              <button onClick={() => setSelectedSize('A2')} className={`px-3 py-1 border text-xs font-mono transition-all ${selectedSize === 'A2' ? 'border-orange-500 text-white' : 'border-white/20 text-gray-400'}`}>A2</button>
-                            </>
-                         )}
-                      </div>
+            {/* UPDATED CONTENT SECTION: Spans 5 cols, deep black theme */}
+            <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto">
+               <div className="flex items-center gap-3 mb-6">
+                    <div className="px-3 py-1 text-[10px] font-mono border border-white/20 text-white bg-white/5 rounded-full uppercase tracking-widest">{selectedProduct.category}</div>
+                    {/* Fake stock indicator */}
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-green-500 uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        Op voorraad
+                    </div>
+               </div>
+               
+               <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
+               <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8 font-medium max-w-md">{selectedProduct.desc}</p>
+               
+               <div className="mt-auto space-y-8">
+                 {/* Price & Size Row */}
+                 <div className="space-y-6">
+                   <div className="flex items-end justify-between border-b border-white/10 pb-4">
+                       <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
+                       <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
+                          <div className="flex gap-1">
+                             {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
+                                selectedProduct.sizes.map(size => (
+                                   <button
+                                     key={size}
+                                     onClick={() => setSelectedSize(size)}
+                                     className={`w-10 h-10 flex items-center justify-center text-xs font-bold border transition-all duration-300 ${
+                                       selectedSize === size 
+                                         ? 'border-white bg-white text-black' 
+                                         : 'border-white/20 text-gray-500 hover:border-white/50 hover:text-white'
+                                     }`}
+                                   >
+                                     {size}
+                                   </button>
+                                ))
+                             ) : (
+                                <>
+                                  <button onClick={() => setSelectedSize('A1')} className={`w-10 h-10 border transition-all ${selectedSize === 'A1' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A1</button>
+                                  <button onClick={() => setSelectedSize('A2')} className={`w-10 h-10 border transition-all ${selectedSize === 'A2' ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>A2</button>
+                                </>
+                             )}
+                          </div>
+                       </div>
                    </div>
                  </div>
-                 <div className="flex gap-4">
+
+                 {/* Action Buttons */}
+                 <div className="flex gap-3">
                     <button 
                         onClick={() => { 
                             addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); 
                             setSelectedProduct(null); 
                         }} 
-                        className="flex-1 bg-white text-black font-bold uppercase tracking-wider py-4 hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                        className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm"
                     >
-                        In Winkelwagen <ShoppingBag className="w-4 h-4" />
+                        Toevoegen <ShoppingBag className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleShare(selectedProduct.id)} className="px-6 py-4 border border-white/10 hover:bg-white/5 transition-colors relative">{copiedId === selectedProduct.id ? (<span className="text-xs font-bold text-green-500">GEKOPIEERD</span>) : (<Share2 className="w-5 h-5 text-gray-400" />)}</button>
+                    <button 
+                        onClick={() => handleShare(selectedProduct.id)} 
+                        className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                    >
+                        {copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}
+                    </button>
                  </div>
-                 <p className="text-center text-[10px] text-gray-600 uppercase tracking-widest">Gratis Verzending Wereldwijd • 30 Dagen Retour</p>
+                 
+                 {/* Footer Info */}
+                 <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider">
+                        <Truck className="w-3 h-3" /> Gratis Verzending
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider">
+                        <Award className="w-3 h-3" /> Museum Kwaliteit
+                    </div>
+                 </div>
                </div>
             </div>
           </div>
