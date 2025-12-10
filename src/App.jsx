@@ -285,7 +285,9 @@ const App = () => {
   const floatingItems = useMemo(() => {
     return heroItems.map((item, i) => ({
       ...item,
-      top: Math.random() * 80 + 10,
+      // CHANGED: Adjusted top position to keep items higher (was 80+10, now 60+5)
+      // This prevents them from floating too much at the bottom
+      top: Math.random() * 60 + 5,
       left: Math.random() * 80 + 10,
       // CHANGED: Reduced duration to make it float MUCH faster (was 15+10, now 8+7)
       duration: 8 + Math.random() * 7,
