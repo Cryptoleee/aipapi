@@ -4,8 +4,10 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: SPEED UP ANIMATION
- * - Reduced floating animation duration to 8-15s for a faster, more dynamic feel
+ * STATUS: CONTENT CORRECTION
+ * - Reverted Hero Title to "FRESH PRINTS"
+ * - Reverted Hero Subtitle to original Dutch text
+ * - Updated Marquee (Lichtkrant) to "UNIQUE PRINTS - ENRICH YOUR SPACE"
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -834,11 +836,12 @@ const App = () => {
               </div>
             </header>
 
+            {/* MARQUEE SECTION UPDATE */}
             <div className="bg-orange-600 py-4 overflow-hidden -rotate-1 relative z-20 shadow-lg shadow-orange-900/50">
               <div className="flex whitespace-nowrap animate-marquee">
                 {[...Array(10)].map((_, i) => (
                   <span key={i} className="text-black font-black text-2xl mx-8 uppercase flex items-center gap-4">
-                    Next-Gen Art <Sparkles className="w-5 h-5 fill-black" /> Limited Editions <div className="w-2 h-2 bg-black rounded-full"></div>
+                    UNIQUE PRINTS <Sparkles className="w-5 h-5 fill-black" /> ENRICH YOUR SPACE <div className="w-2 h-2 bg-black rounded-full"></div>
                   </span>
                 ))}
               </div>
@@ -848,7 +851,8 @@ const App = () => {
               <div className="container mx-auto px-6">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
                   <div>
-                    <h2 className="text-4xl md:text-6xl font-bold mb-4">Nieuwste Drops</h2>
+                    {/* UPDATED COLLECTION TITLE */}
+                    <h2 className="text-4xl md:text-6xl font-bold mb-4">The Latest and Greatest</h2>
                     <div className="h-1 w-20 bg-orange-600"></div>
                   </div>
                 </div>
