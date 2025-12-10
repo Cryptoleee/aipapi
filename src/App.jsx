@@ -4,10 +4,8 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: MOBILE OPTIMIZATION
- * - Implemented Smart ProductCard with auto-hiding overlay (3s timer)
- * - Fixed Mobile Modal proportions (image fitting, text sizing, padding)
- * - Maintained all previous integrations
+ * STATUS: SPEED UP ANIMATION
+ * - Reduced floating animation duration to 8-15s for a faster, more dynamic feel
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -282,6 +280,20 @@ const App = () => {
         seed: p.id
       }));
   }, [products]);
+
+  // STABLE FLOATING ITEMS (Fixes jittering on re-render)
+  const floatingItems = useMemo(() => {
+    return heroItems.map((item, i) => ({
+      ...item,
+      top: Math.random() * 80 + 10,
+      left: Math.random() * 80 + 10,
+      // CHANGED: Reduced duration to make it float MUCH faster (was 15+10, now 8+7)
+      duration: 8 + Math.random() * 7,
+      delay: i * 2,
+      rotation: Math.random() * 40 - 20,
+      scale: Math.random() * 0.4 + 0.6
+    }));
+  }, [heroItems]);
 
   // Rotate Hero Images
   useEffect(() => {
@@ -591,7 +603,7 @@ const App = () => {
             }}
           />
           {/* Reduced opacity and blur for the side glow */}
-          <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-orange-600/5 to-transparent blur-2xl animate-pulse-slow"></div>
+          <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-orange-600/5 to-transparent blur-xl animate-pulse-slow"></div>
       </div>
 
       {/* --- Navigation --- */}
@@ -655,6 +667,38 @@ const App = () => {
             <header className="relative min-h-screen flex items-center pt-20 overflow-hidden">
               <div className="absolute inset-0 z-0 opacity-10" 
                    style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '100px 100px' }}>
+              </div>
+
+              {/* --- FLOATING BACKGROUND PRINTS (UPDATED) --- */}
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                 {floatingItems.map((item, i) => (
+                    <div 
+                      key={`float-${i}`}
+                      // CHANGED: Reduced blur from blur-md to blur-sm
+                      className="absolute opacity-20 blur-sm transition-all"
+                      style={{
+                        top: `${item.top}%`,
+                        left: `${item.left}%`,
+                        // Use longhand to avoid conflicting property warnings
+                        animationName: 'float',
+                        animationDuration: `${item.duration}s`,
+                        animationTimingFunction: 'ease-in-out',
+                        animationIterationCount: 'infinite',
+                        animationDirection: 'alternate',
+                        animationDelay: `${item.delay}s`
+                      }}
+                    >
+                       <div 
+                          className="w-32 h-40 bg-gray-800 border border-white/10 rounded-sm overflow-hidden shadow-lg"
+                          style={{ 
+                            // Applied stable random rotation/scale
+                            transform: `rotate(${item.rotation}deg) scale(${item.scale})` 
+                          }}
+                       >
+                          <img src={item.src} alt="" className="w-full h-full object-cover opacity-80" />
+                       </div>
+                    </div>
+                 ))}
               </div>
 
               <div className="container mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
@@ -734,7 +778,8 @@ const App = () => {
                   </div>
                 </div>
 
-                <div className="relative h-[600px] w-full hidden md:block perspective-1000">
+                {/* --- HERO IMAGE CONTAINER (UPDATED ASPECT) --- */}
+                <div className="relative w-full max-w-[450px] aspect-[3/4] hidden md:block perspective-1000 mx-auto">
                    <div 
                       className="absolute inset-0 transition-transform duration-100 ease-linear"
                       style={{
@@ -1822,6 +1867,13 @@ const App = () => {
         .perspective-1000 { perspective: 1000px; }
         .ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes scan { 0% { top: 0; opacity: 0; } 20% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        
+        /* NEW: Organic Float Animation */
+        @keyframes float {
+          0% { transform: translate(0, 0); }
+          50% { transform: translate(15px, -20px); }
+          100% { transform: translate(-10px, 15px); }
+        }
       `}</style>
     </div>
   );
