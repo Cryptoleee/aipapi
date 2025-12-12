@@ -353,7 +353,8 @@ const App = () => {
             category: wpProduct.categories[0]?.name || "Art",
             color: wpProduct.images[0]?.src || "from-gray-500 to-gray-700", 
             aspect: 'aspect-[3/4]',
-            sizes: availableSizes 
+            sizes: availableSizes,
+            featured: wpProduct.featured || false // Capture the featured status from WP
           };
         });
         
@@ -367,6 +368,14 @@ const App = () => {
     };
     fetchWooCommerceProducts();
   }, []);
+
+  // FILTER FEATURED DROPS
+  const featuredDrops = useMemo(() => {
+    const featured = products.filter(p => p.featured);
+    // If you have "Starred" products in WooCommerce, use those. 
+    // Otherwise, fallback to the latest 3 products.
+    return featured.length > 0 ? featured.slice(0, 3) : products.slice(0, 3);
+  }, [products]);
 
   // --- INSTAGRAM FEED ---
   useEffect(() => {
@@ -879,6 +888,56 @@ const App = () => {
                 ))}
               </div>
             </div>
+
+            {/* SPOTLIGHT SECTION */}
+            {!isLoading && featuredDrops.length > 0 && (
+              <section className="py-24 relative border-b border-white/5 bg-gradient-to-b from-black to-zinc-900/30">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
+                <div className="container mx-auto px-6 relative z-10">
+                  <div className="flex items-center justify-center gap-4 mb-16">
+                     <div className="h-px w-12 bg-orange-500/50"></div>
+                     <span className="text-xs font-mono text-orange-500 uppercase tracking-widest flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" /> Featured Drops
+                     </span>
+                     <div className="h-px w-12 bg-orange-500/50"></div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-5xl mx-auto">
+                    {featuredDrops.map((product, index) => (
+                      <div 
+                        key={product.id} 
+                        className={`group relative cursor-pointer transition-all duration-500 ${index === 1 ? 'md:-translate-y-6 z-10' : 'hover:-translate-y-2 opacity-80 hover:opacity-100'}`}
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                         {/* Center Glow */}
+                         {index === 1 && <div className="absolute inset-0 -m-4 bg-orange-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>}
+                         
+                         <div className={`relative aspect-[3/4] bg-gray-900 border ${index === 1 ? 'border-orange-500/50 shadow-[0_0_30px_rgba(234,88,12,0.15)]' : 'border-white/10'} rounded-sm overflow-hidden shadow-2xl transition-all duration-500`}>
+                            {product.color.includes('http') ? (
+                              <img src={product.color} alt={product.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105" />
+                            ) : (
+                              <div className={`w-full h-full bg-gradient-to-br ${product.color}`}></div>
+                            )}
+                            
+                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                            
+                            {/* Hover Info */}
+                            <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-end justify-between">
+                               <div className="text-left">
+                                  <p className="text-xs font-bold text-white uppercase tracking-wider">{product.title}</p>
+                                  <p className="text-[10px] font-mono text-orange-500 mt-1">LIMITED EDITION</p>
+                               </div>
+                               <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-100">
+                                  <ArrowRight className="w-4 h-4" />
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
 
             <section id="collections" className="py-32 relative">
               <div className="container mx-auto px-6">
