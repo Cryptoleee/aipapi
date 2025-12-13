@@ -4,10 +4,9 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: HERO UPDATE - SUBTLE MODE
- * - Replaced loud cards with minimalist data lines
- * - Reduced visual noise in hero section
- * - Fixed ReferenceError by removing unused systemLoad logic
+ * STATUS: FULL RESTORE
+ * - Restored full content for Collection, Process, About, and Checkout views.
+ * - Removed placeholder comments to ensure all sections render correctly.
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -124,39 +123,6 @@ const App = () => {
   const [commissionFile, setCommissionFile] = useState(null);
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
-
-  // --- FIGURINE EXPLODED VIEW DATA (With Positions) ---
-  const figurineParts = [
-    // Head (Top Center)
-    { id: 'head', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Head.png', 
-      x: 50, y: 15, width: 25, depth: 0.08, z: 10, rotate: 0 },
-    
-    // Torso (Center)
-    { id: 'torso', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Torso.png', 
-      x: 50, y: 38, width: 35, depth: 0.04, z: 5, rotate: 0 },
-    
-    // Arms (Sides)
-    { id: 'l_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftarm.png', 
-      x: 25, y: 38, width: 20, depth: 0.06, z: 6, rotate: -10 },
-    { id: 'r_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightarm.png', 
-      x: 75, y: 38, width: 20, depth: 0.06, z: 6, rotate: 10 },
-      
-    // Hands (Lower Sides)
-    { id: 'l_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/lefthand.png', 
-      x: 15, y: 55, width: 15, depth: 0.10, z: 8, rotate: -20 },
-    { id: 'r_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Righthand.png', 
-      x: 85, y: 55, width: 15, depth: 0.10, z: 8, rotate: 20 },
-
-    // Pants (Lower Center)
-    { id: 'pants', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Pants.png', 
-      x: 50, y: 65, width: 30, depth: 0.02, z: 4, rotate: 0 },
-
-    // Shoes (Bottom)
-    { id: 'l_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftshoe.png', 
-      x: 40, y: 85, width: 15, depth: 0.03, z: 4, rotate: -5 },
-    { id: 'r_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightshoe.png', 
-      x: 60, y: 85, width: 15, depth: 0.03, z: 4, rotate: 5 },
-  ];
 
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
@@ -1027,11 +993,8 @@ const App = () => {
           </div>
         )}
 
-        {/* ... Rest of views (collection, process, about, checkout, modals) remain unchanged ... */}
         {view === 'collection' && (
-          // ... (Existing code for collection view) ...
           <div className="min-h-screen pt-32 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             {/* ... content same as before ... */}
               <div className="container mx-auto px-6">
                 <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-4">
                     <div>
@@ -1040,22 +1003,47 @@ const App = () => {
                         DE COLLECTIE
                     </h1>
                     </div>
-                    {/* ... */}
+                    <div className="text-right">
+                    <p className="text-sm text-gray-400 font-mono">
+                        PAGINA {collectionPage + 1} / {totalPages}
+                    </p>
+                    </div>
                 </div>
-                 {/* ... grid and pagination ... */}
+                 
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo">
                      {currentProducts.map((product) => (
                         <ProductCard key={product.id} product={product} onClick={setSelectedProduct} />
                      ))}
                  </div>
-                 {/* ... pagination buttons ... */}
+                 
                   <div className="flex justify-between items-center border-t border-white/10 pt-8">
                      <button onClick={prevPage} disabled={collectionPage === 0} className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronLeft className="w-4 h-4" /> Vorige</button>
                      <div className="flex gap-2">{[...Array(totalPages)].map((_, i) => (<button key={i} onClick={() => goToPage(i)} className={`w-2 h-2 rounded-full transition-all duration-300 ${i === collectionPage ? 'bg-orange-500 w-8' : 'bg-gray-700 hover:bg-gray-500'}`} />))}</div>
                      <button onClick={nextPage} disabled={collectionPage === totalPages - 1} className="flex items-center gap-2 px-6 py-3 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors">Volgende <ChevronRight className="w-4 h-4" /></button>
                   </div>
               </div>
-              {/* ... CTA ... */}
+              
+            <div className="mt-20 bg-orange-600 text-black py-32 relative overflow-hidden group">
+               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+               <div className="absolute -top-20 -right-20 w-96 h-96 bg-black/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+               <div className="container mx-auto px-6 relative z-10 text-center animate-in fade-in zoom-in duration-500">
+                  <div className="inline-flex items-center justify-center p-3 bg-black/10 rounded-full mb-8">
+                    <Wand2 className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <h2 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter leading-none">
+                     KUN JE JE SOUL NIET VINDEN?
+                  </h2>
+                  <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto mb-10 leading-relaxed opacity-80">
+                    Zit er niets tussen wat bij je past? No worries! Vertel ons wat je vet vind, stuur voorbeelden mee en wij gaan er mee aan de slag.
+                  </p>
+                  <button 
+                    onClick={() => setCommissionOpen(true)}
+                    className="bg-black text-white px-10 py-5 font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-3 mx-auto"
+                  >
+                    Start een Commissie <ArrowRight className="w-4 h-4" />
+                  </button>
+               </div>
+            </div>
           </div>
         )}
 
@@ -1100,34 +1088,183 @@ const App = () => {
                       </p>
                    </div>
                 </div>
+                <div className="grid md:grid-cols-2 gap-8 items-center mb-32">
+                   <div className="relative h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-white/10 group">
+                      <img 
+                        src="https://www.aipostershop.nl/wp-content/uploads/2025/11/EarlyDays.jpg" 
+                        alt="Begin werk uit 2021" 
+                        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+                      
+                      <div className="absolute bottom-0 left-0 w-full p-8">
+                         <p className="font-mono text-xs text-orange-500 mb-2">EST. 2021</p>
+                         <h4 className="text-2xl font-bold">Begin werk uit 2021</h4>
+                      </div>
+                   </div>
+                   <div className="space-y-8">
+                      <h3 className="text-4xl font-bold">ONDERSTEUND DOOR ERVARING.</h3>
+                      <div className="space-y-4 text-lg text-gray-400 leading-relaxed">
+                         <p>
+                            "Ik creëer al jaren visuals met Photoshop, fotografie en videografie. Ik ben niet zomaar op de AI-trein gesprongen; ik ben erbij sinds het begin."
+                         </p>
+                         <p>
+                            Mijn achtergrond stelt me in staat de taal van de modellen vloeiend te spreken. Ik ken de nieuwste workflows, de beste modellen en precies hoe ik parameters moet aanpassen voor die specifieke esthetiek. Dit is geen automatie—het is digitale alchemie.
+                         </p>
+                      </div>
+                      <button 
+                        onClick={() => setCommissionOpen(true)}
+                        className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        Start Jouw Project <ArrowRight className="w-4 h-4" />
+                      </button>
+                   </div>
+                </div>
              </div>
           </div>
         )}
 
         {view === 'about' && (
-          // ... (Restored original About view) ...
           <div className="min-h-screen pt-40 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black">
-             {/* ... content ... */}
+             <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,100,0,0.15),transparent_50%)] pointer-events-none"></div>
+             
              <div className="container mx-auto px-6 mb-32 relative z-10">
                 <div className="flex flex-col md:flex-row items-center gap-20">
                    
                    <div className="w-full md:w-1/2 flex justify-center perspective-1000 relative">
-                      {/* ... The Architect Card ... */}
-                      <div className="relative w-[340px] h-[460px] transition-transform duration-100 ease-linear group" style={{ transform: `rotateY(${(mousePos.x - window.innerWidth/2) * 0.05}deg) rotateX(${-(mousePos.y - window.innerHeight/2) * 0.05}deg)` }}>
+                      <div className="absolute -inset-1 bg-orange-500/5 blur-xl animate-pulse-slow pointer-events-none"></div>
+                      <div className="absolute -inset-20 bg-orange-600/5 blur-[100px] rounded-full pointer-events-none"></div>
+                      
+                      <div 
+                         className="relative w-[340px] h-[460px] transition-transform duration-100 ease-linear group"
+                         style={{
+                           transform: `rotateY(${(mousePos.x - window.innerWidth/2) * 0.05}deg) rotateX(${-(mousePos.y - window.innerHeight/2) * 0.05}deg)`
+                         }}
+                      >
                          <div className="absolute inset-0 z-0">
-                            <img src="https://www.aipostershop.nl/wp-content/uploads/2025/11/Lee.jpg" alt="The Architect" className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity duration-700" style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)' }} />
+                            <img 
+                              src="https://www.aipostershop.nl/wp-content/uploads/2025/11/Lee.jpg" 
+                              alt="The Architect" 
+                              className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity duration-700" 
+                              style={{
+                                maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                                WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+                              }}
+                            />
+                            {/* Holographic Scanline Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/10 to-transparent h-2 w-full animate-[scan_2s_linear_infinite] pointer-events-none"></div>
+                            
+                            {/* Glitch/Noise Overlay */}
+                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
                          </div>
-                         {/* ... HUD Elements ... */}
+                         
+                         {/* Floating HUD Elements */}
+                         <div className="absolute top-10 -right-12 space-y-4 text-right hidden md:block">
+                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-orange-500 p-3 pr-4 transform translate-x-4 group-hover:translate-x-0 transition-transform duration-500">
+                                <p className="text-[10px] text-gray-400 font-mono mb-1">IDENTITY_MATRIX</p>
+                                <h3 className="text-xl font-black text-white">DE ARCHITECT</h3>
+                            </div>
+                            
+                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-green-500 p-2 pr-4 transform translate-x-8 group-hover:translate-x-0 transition-transform duration-700 delay-100">
+                                <div className="flex items-center justify-end gap-2 text-xs font-mono text-green-400">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></span>
+                                    SYSTEM_ONLINE
+                                </div>
+                            </div>
+
+                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-white/20 p-2 pr-4 transform translate-x-12 group-hover:translate-x-0 transition-transform duration-1000 delay-200">
+                                <p className="text-[10px] font-mono text-orange-500">ID: 0x992...A1</p>
+                            </div>
+                         </div>
+
+                         {/* Mobile Fallback HUD (Bottom) */}
+                         <div className="absolute bottom-0 left-0 right-0 p-4 md:hidden bg-gradient-to-t from-black to-transparent">
+                            <h3 className="text-2xl font-black text-white text-center">DE ARCHITECT</h3>
+                            <div className="flex justify-center gap-4 mt-2 font-mono text-xs">
+                                <span className="text-orange-500">Visual Futurist</span>
+                                <span className="text-green-500">ONLINE</span>
+                            </div>
+                         </div>
+                         
+                         {/* Deco Elements */}
+                         <div className="absolute -top-4 -left-4 w-8 h-8 border-t-2 border-l-2 border-orange-500/50"></div>
+                         <div className="absolute -bottom-4 -right-4 w-8 h-8 border-b-2 border-r-2 border-orange-500/50"></div>
                       </div>
                    </div>
 
                    <div className="w-full md:w-1/2 space-y-8">
-                      {/* ... Text Content ... */}
+                      <div className="inline-flex items-center gap-2 px-3 py-1 border border-white/10 bg-white/5 rounded-full text-xs font-mono text-gray-400 uppercase tracking-widest backdrop-blur-sm">
+                         <div className="w-2 h-2 bg-white rounded-full"></div>
+                         Over Mij
+                      </div>
+                      
                       <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
-                         {aboutContent.title}
+                         {aboutContent.title.includes(' ') ? (
+                            <>
+                                {aboutContent.title.split(' ').slice(0, -1).join(' ')} <br/>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-600 drop-shadow-sm">
+                                    {aboutContent.title.split(' ').pop()}
+                                </span>
+                            </>
+                         ) : (
+                             aboutContent.title
+                         )}
                       </h1>
-                      <p className="text-xl text-gray-400 leading-relaxed max-w-lg font-medium">{aboutContent.text}</p>
+                      
+                      <p className="text-xl text-gray-400 leading-relaxed max-w-lg font-medium">
+                         {aboutContent.text}
+                      </p>
+                      
+                      <div className="flex gap-6 pt-6">
+                         <div className="group relative p-6 bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-orange-500/50 transition-colors duration-300 w-40">
+                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <h4 className="text-3xl font-black text-orange-500 mb-1 relative z-10">4+</h4>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Jaren Prompting</p>
+                         </div>
+                         
+                         <div className="group relative p-6 bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-colors duration-300 w-40">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <h4 className="text-3xl font-black text-white mb-1 relative z-10">150k+</h4>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Generaties</p>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             <div className="bg-black text-white py-32 relative overflow-hidden border-t border-white/10">
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent opacity-50"></div>
+                <div className="container mx-auto px-6 relative z-10">
+                   <div className="max-w-4xl mx-auto">
+                      <h2 className="text-4xl md:text-6xl font-black mb-12 tracking-tighter">VAN VIDEO NAAR VISIE</h2>
+                      <div className="grid md:grid-cols-2 gap-12 text-lg leading-relaxed font-medium text-gray-400">
+                         <p>
+                            Ik ben altijd al een maker geweest. Met mijn bedrijf <span className="text-white">Wijzijnwolf.nl</span> produceer ik dagelijks video-content, en die drive om te creëren stopt niet als de camera uitgaat. Ik volg de AI-ontwikkelingen op de voet en gebruik die dagelijkse stroom aan innovatie om nieuwe beelden te smeden. De technische bagage die ik door de jaren heen heb opgebouwd, blijkt nu de perfecte toolset voor het aansturen van deze modellen.
+                         </p>
+                         <p>
+                            Het ontwikkelen van een prompt is voor mij een nieuw soort ambacht. Het is zoeken naar dat specifieke, creatieve mengsel van woorden dat precies de juiste snaar raakt. Het gaat om het creëren van het perfecte beeld en de juiste vibe, waarbij ik mijn kennis van licht en compositie nu toepas via tekst en code. Ai Papi is het tastbare resultaat van die digitale zoektocht.
+                         </p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 mt-20 border-t border-white/10 pt-12">
+                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
+                            <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
+                               <Terminal className="w-8 h-8" />
+                            </div>
+                            <h4 className="font-bold uppercase tracking-widest text-sm">Code</h4>
+                         </div>
+                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
+                             <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
+                               <Cpu className="w-8 h-8" />
+                            </div>
+                            <h4 className="font-bold uppercase tracking-widest text-sm">Compute</h4>
+                         </div>
+                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
+                             <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
+                               <Palette className="w-8 h-8" />
+                            </div>
+                            <h4 className="font-bold uppercase tracking-widest text-sm">Canvas</h4>
+                         </div>
+                      </div>
                    </div>
                 </div>
              </div>
@@ -1135,26 +1272,294 @@ const App = () => {
         )}
         
         {view === 'checkout' && (
-            // ... (Checkout View) ...
             <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
-               {/* ... form ... */}
+               <div className="bg-orange-600/10 border-y border-orange-500/20 text-orange-500 text-center py-3 px-6 text-xs font-mono uppercase tracking-widest mb-12 backdrop-blur-md">
+                 Heb je een waardebon? Klik hier om je code in te vullen
+               </div>
+
                <div className="container mx-auto px-6 max-w-6xl">
-                 {/* ... inputs ... */}
-                  <button 
-                     type="button" 
-                     onClick={handlePlaceOrder}
-                     disabled={isProcessing}
-                     className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
-                   >
-                     <div className={`absolute inset-0 bg-orange-500 transition-transform duration-300 z-0 ${isProcessing ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
-                     <span className="relative z-10 flex items-center gap-2">
-                        {isProcessing ? (
-                           <>Doorsturen naar betaling... <Loader2 className="w-5 h-5 animate-spin" /></>
-                        ) : (
-                           <>Ga naar betaling <Lock className="w-4 h-4 group-hover:text-white transition-colors" /></>
-                        )}
-                     </span>
-                   </button>
+                 <div className="grid md:grid-cols-2 gap-16">
+                   
+                   <div>
+                     <h2 className="text-3xl font-black tracking-tighter mb-8 flex items-center gap-3">
+                        <Terminal className="w-6 h-6 text-orange-500" />
+                        FACTUURGEGEVENS
+                     </h2>
+                     <form className="space-y-6 font-mono text-sm">
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-2">
+                              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Voornaam *</label>
+                              <input 
+                                  type="text" 
+                                  name="firstName" 
+                                  value={formData.firstName} 
+                                  onChange={handleBillingChange} 
+                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                                  placeholder="Jouw naam" 
+                              />
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Achternaam *</label>
+                              <input 
+                                  type="text" 
+                                  name="lastName" 
+                                  value={formData.lastName} 
+                                  onChange={handleBillingChange} 
+                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                                  placeholder="Jouw achternaam" 
+                              />
+                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bedrijfsnaam (optioneel)</label>
+                           <input 
+                              type="text" 
+                              name="company" 
+                              value={formData.company} 
+                              onChange={handleBillingChange} 
+                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                              placeholder="" 
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Land *</label>
+                           <div className="relative">
+                              <select 
+                                  value={billingCountry}
+                                  onChange={(e) => setBillingCountry(e.target.value)}
+                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white appearance-none cursor-pointer"
+                              >
+                                  <option value="NL" className="bg-black text-white">Nederland</option>
+                                  <option value="BE" className="bg-black text-white">België</option>
+                              </select>
+                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Straat *</label>
+                           <input 
+                              type="text" 
+                              name="address" 
+                              value={formData.address} 
+                              onChange={handleBillingChange} 
+                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                              placeholder="Straatnaam" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Huisnummer *</label>
+                           <input 
+                              type="text" 
+                              name="houseNumber" 
+                              value={formData.houseNumber} 
+                              onChange={handleBillingChange} 
+                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                              placeholder="Nr." 
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Postcode *</label>
+                             <input 
+                                  type="text" 
+                                  name="postcode" 
+                                  value={formData.postcode} 
+                                  onChange={handleBillingChange} 
+                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                                  placeholder="1234 AB" 
+                              />
+                          </div>
+                          <div className="space-y-2">
+                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Plaats *</label>
+                             <input 
+                                  type="text" 
+                                  name="city" 
+                                  value={formData.city} 
+                                  onChange={handleBillingChange} 
+                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                                  placeholder="Amsterdam" 
+                              />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">E-mailadres *</label>
+                           <input 
+                              type="email" 
+                              name="email" 
+                              value={formData.email} 
+                              onChange={handleBillingChange} 
+                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
+                              placeholder="jouw@email.com" 
+                          />
+                        </div>
+
+                        <div className="pt-4 border-t border-white/10">
+                           <label className="flex items-center gap-3 cursor-pointer group mb-6">
+                              <div className="relative">
+                                <input 
+                                  type="checkbox" 
+                                  className="peer sr-only" 
+                                  checked={shipToDifferentAddress}
+                                  onChange={(e) => setShipToDifferentAddress(e.target.checked)}
+                                />
+                                <div className="w-5 h-5 border border-white/30 rounded-sm peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-colors group-hover:border-orange-500/50"></div>
+                                <Check className="absolute top-0.5 left-0.5 w-4 h-4 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
+                              </div>
+                              <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Verzenden naar een ander adres?</span>
+                           </label>
+
+                           {shipToDifferentAddress && (
+                              <div className="space-y-6 pt-2 animate-in slide-in-from-top-4 fade-in duration-300">
+                                  <h3 className="text-xl font-bold text-white mb-4">Verzendgegevens</h3>
+                                  <div className="grid grid-cols-2 gap-6">
+                                      <div className="space-y-2">
+                                          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Voornaam *</label>
+                                          <input type="text" name="firstName" value={shippingData.firstName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                      </div>
+                                      <div className="space-y-2">
+                                          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Achternaam *</label>
+                                          <input type="text" name="lastName" value={shippingData.lastName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                      </div>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bedrijfsnaam (optioneel)</label>
+                                      <input type="text" name="company" value={shippingData.company} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Land *</label>
+                                      <div className="relative">
+                                          <select 
+                                              value={shippingCountry}
+                                              onChange={(e) => setShippingCountry(e.target.value)}
+                                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white appearance-none cursor-pointer"
+                                          >
+                                              <option value="Nederland" className="bg-black text-white">Nederland</option>
+                                              <option value="België" className="bg-black text-white">België</option>
+                                          </select>
+                                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                      </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Straat *</label>
+                                      <input type="text" name="address" value={shippingData.address} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                  </div>
+                                  <div className="space-y-2">
+                                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Huisnummer *</label>
+                                      <input type="text" name="houseNumber" value={shippingData.houseNumber} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-6">
+                                      <div className="space-y-2">
+                                          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Postcode *</label>
+                                          <input type="text" name="postcode" value={shippingData.postcode} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                      </div>
+                                      <div className="space-y-2">
+                                          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Plaats *</label>
+                                          <input type="text" name="city" value={shippingData.city} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" />
+                                      </div>
+                                  </div>
+                              </div>
+                           )}
+                        </div>
+                     </form>
+                   </div>
+
+                   <div>
+                     <h2 className="text-3xl font-black tracking-tighter mb-8 flex items-center gap-3">
+                        <Package className="w-6 h-6 text-orange-500" />
+                        JE BESTELLING
+                     </h2>
+                     
+                     <div className="bg-white/5 border border-white/10 p-8 rounded-sm space-y-6 mb-8 backdrop-blur-sm relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
+                        {cartItems.map((item) => (
+                          <div key={item.cartId} className="flex gap-4 relative z-10">
+                             <div className={`w-20 h-24 bg-gradient-to-br ${item.image} flex-shrink-0 relative overflow-hidden rounded-sm border border-white/10`}>
+                                {item.image.includes('http') ? ( <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover opacity-80" /> ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${item.image} opacity-80`}></div> )}
+                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                             </div>
+                             <div className="flex-1">
+                                <div className="flex justify-between items-start mb-1">
+                                    <h4 className="font-bold text-lg">{item.title}</h4>
+                                    <span className="font-bold font-mono">€{item.price}</span>
+                                </div>
+                                <div className="flex gap-2 text-xs text-gray-500 uppercase tracking-widest mt-1 font-mono">
+                                    <span>Limited Edition</span>
+                                    <span>•</span>
+                                    <span className="text-orange-500 font-bold">{item.size}</span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2 font-mono">Aantal: {item.quantity}</p>
+                             </div>
+                          </div>
+                        ))}
+                        
+                        <div className="border-t border-white/10 pt-6 space-y-3 relative z-10 font-mono text-sm">
+                           <div className="flex justify-between">
+                              <span className="text-gray-400 uppercase tracking-wider">Subtotaal</span>
+                              <span className="font-bold">€{cartTotal.toFixed(2)}</span>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="text-gray-400 uppercase tracking-wider">Verzending</span>
+                              <span className="text-green-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                                 <Truck className="w-3 h-3" /> Gratis verzending
+                              </span>
+                           </div>
+                           <div className="flex justify-between border-t border-white/10 pt-4 mt-4">
+                              <span className="font-black text-lg uppercase tracking-wider">Totaal</span>
+                              <div className="text-right">
+                                 <span className="font-black text-2xl block text-orange-500">€{cartTotal.toFixed(2)}</span>
+                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest">(inclusief € {(cartTotal * 0.21).toFixed(2)} btw)</span>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <p className="text-xs text-gray-500 leading-relaxed mb-6 font-mono">
+                        Je persoonlijke gegevens zullen worden gebruikt om je bestelling te verwerken, om je beleving op deze site te optimaliseren en voor andere doeleinden zoals beschreven in onze privacybeleid.
+                     </p>
+
+                     <div className="mb-8 font-mono">
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                           <div className="relative mt-0.5">
+                             <input 
+                               type="checkbox" 
+                               className="peer sr-only" 
+                               checked={termsAccepted}
+                               onChange={(e) => setTermsAccepted(e.target.checked)}
+                             />
+                             <div className="w-5 h-5 border border-white/30 rounded-sm peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-colors group-hover:border-orange-500/50"></div>
+                             <Check className="absolute top-0.5 left-0.5 w-4 h-4 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
+                           </div>
+                           <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Ik heb de algemene voorwaarden van de site gelezen en ga hiermee akkoord *</span>
+                        </label>
+                     </div>
+
+                     <button 
+                       type="button" 
+                       onClick={handlePlaceOrder}
+                       disabled={isProcessing}
+                       className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+                     >
+                       <div className={`absolute inset-0 bg-orange-500 transition-transform duration-300 z-0 ${isProcessing ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
+                       <span className="relative z-10 flex items-center gap-2">
+                          {isProcessing ? (
+                             <>Doorsturen naar betaling... <Loader2 className="w-5 h-5 animate-spin" /></>
+                          ) : (
+                             <>Ga naar betaling <Lock className="w-4 h-4 group-hover:text-white transition-colors" /></>
+                          )}
+                       </span>
+                     </button>
+
+                   </div>
+                 </div>
                </div>
             </div>
         )}
@@ -1173,15 +1578,195 @@ const App = () => {
              <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
                  {/* ... Details & Add to Cart ... */}
                  <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                 <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                  {/* ... UPDATED Size Selection ... */}
+                  <div className="mt-auto space-y-8">
+                     <div className="space-y-6">
+                        <div className="flex items-end justify-between border-b border-white/10 pb-4">
+                           <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
+                           <div className="text-right">
+                              <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
+                              <div className="flex gap-2 justify-end flex-wrap">
+                                 {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
+                                    selectedProduct.sizes.map(size => (
+                                       <button
+                                          key={size}
+                                          onClick={() => setSelectedSize(size)}
+                                          className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${
+                                          selectedSize === size 
+                                             ? 'border-white bg-white text-black' 
+                                             : 'border-white/20 text-gray-400 hover:border-white hover:text-white'
+                                          }`}
+                                       >
+                                          {size}
+                                       </button>
+                                    ))
+                                 ) : (
+                                    // ... fallback ...
+                                    <></> 
+                                 )}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                        {/* ... Share ... */}
+                        <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
+                      </div>
+                      {/* ... Footer Info ... */}
+                      <div className="grid grid-cols-2 gap-4 pt-4">
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
+                      </div>
+                  </div>
              </div>
           </div>
         </div>
       )}
 
-      {/* ... Other Modals ... */}
+      {contactOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setContactOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-gray-900 border border-white/10 shadow-2xl rounded-lg animate-in zoom-in-95 duration-300 overflow-hidden">
+             {contactSubmitted ? (
+               <div className="p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-6 animate-in zoom-in spin-in-90 duration-500"><Check className="w-8 h-8 text-black" /></div>
+                 <h3 className="text-3xl font-black mb-2">BERICHT VERSTUURD</h3>
+                 <p className="text-gray-400">We nemen spoedig contact op.</p>
+               </div>
+             ) : (
+               <form onSubmit={handleContactSubmit} className="p-8 md:p-10 flex flex-col h-full">
+                 <div className="flex justify-between items-start mb-8"><div><h3 className="text-2xl font-black">CONTACT</h3><p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Neem contact met ons op</p></div><button type="button" onClick={() => setContactOpen(false)} className="text-gray-400 hover:text-white transition-colors"><X className="w-6 h-6" /></button></div>
+                 <div className="space-y-6">
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Naam</label><input required type="text" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="Jouw naam" /></div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">E-mail</label><input required type="email" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="jouw@email.com" /></div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Bericht</label><textarea required rows={4} className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors resize-none" placeholder="Waar kunnen we je mee helpen?" /></div>
+                    <button className="w-full bg-white text-black font-bold uppercase tracking-wider py-4 mt-4 hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2">Verstuur Bericht <Send className="w-4 h-4" /></button>
+                 </div>
+               </form>
+             )}
+          </div>
+        </div>
+      )}
 
-      {/* ... Mobile Menu ... */}
+      {commissionOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setCommissionOpen(false)}></div>
+          <div className="relative w-full max-w-lg bg-gray-900 border border-white/10 shadow-2xl rounded-lg animate-in zoom-in-95 duration-300 overflow-hidden">
+             {formSubmitted ? (
+               <div className="p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-6 animate-in zoom-in spin-in-90 duration-500"><Check className="w-8 h-8 text-black" /></div>
+                 <h3 className="text-3xl font-black mb-2">AANVRAAG VERSTUURD</h3>
+                 <p className="text-gray-400">Onze curatoren nemen spoedig contact op.</p>
+               </div>
+             ) : (
+               <form onSubmit={handleCommissionSubmit} className="p-8 md:p-10 flex flex-col h-full">
+                 <div className="flex justify-between items-start mb-8"><div><h3 className="text-2xl font-black">START EEN COMMISSIE</h3><p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Op Maat Gemaakte 1/1 Art Generatie</p></div><button type="button" onClick={() => setCommissionOpen(false)} className="text-gray-400 hover:text-white transition-colors"><X className="w-6 h-6" /></button></div>
+                 <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Naam</label><input required name="name" type="text" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="Jane Doe" /></div>
+                       <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">E-mail</label><input required name="email" type="email" className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors" placeholder="jane@example.com" /></div>
+                    </div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Visie / Bericht</label><textarea required name="message" rows={4} className="w-full bg-black/30 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors resize-none" placeholder="Beschrijf de sfeer, kleuren en stijl die je zoekt..." /></div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-gray-400 uppercase">Referentiebeelden (Optioneel)</label>
+                        <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-white/10 rounded-sm p-8 flex flex-col items-center justify-center text-gray-500 hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors cursor-pointer group relative">
+                            {/* Hidden file input */}
+                            <input 
+                                type="file" 
+                                name="file"
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={(e) => setCommissionFile(e.target.files[0])} 
+                            />
+                            
+                            {commissionFile ? (
+                                <div className="text-center">
+                                    <Check className="w-8 h-8 mb-3 text-green-500 mx-auto" />
+                                    <p className="text-sm text-white font-bold">{commissionFile.name}</p>
+                                    <p className="text-[10px] mt-1 text-gray-400">Klik om te wijzigen</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <Upload className="w-8 h-8 mb-3 group-hover:text-orange-500 transition-colors" />
+                                    <p className="text-sm">Klik om te uploaden of sleep hierheen</p>
+                                    <p className="text-[10px] mt-1">JPG, PNG, WEBP (Max 10MB)</p>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <button disabled={isUploading} className="w-full bg-white text-black font-bold uppercase tracking-wider py-4 mt-4 hover:bg-orange-500 hover:text-white transition-all duration-300 flex justify-center items-center gap-2">
+                        {isUploading ? <>Versturen... <Loader2 className="w-4 h-4 animate-spin" /></> : "Verstuur Aanvraag"}
+                    </button>
+                 </div>
+               </form>
+             )}
+          </div>
+        </div>
+      )}
+
+      {cartOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          <div className="absolute inset-0 bg-transparent" onClick={() => setCartOpen(false)}></div>
+          <div className="relative w-full max-w-md h-full bg-black border-l border-white/10 shadow-2xl animate-in slide-in-from-right duration-500 flex flex-col">
+             <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/80 backdrop-blur-md z-10">
+               <div className="flex items-center gap-3"><ShoppingBag className="w-5 h-5" /><h2 className="font-bold text-lg tracking-wider">JOUW WINKELWAGEN <span className="text-gray-500 text-sm ml-2">({cartCount})</span></h2></div>
+               <button onClick={() => setCartOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+             </div>
+             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {cartItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500"><ShoppingBag className="w-12 h-12 mb-4 opacity-20" /><p>Je winkelwagen is leeg.</p></div>
+                ) : (
+                  cartItems.map(item => (
+                    <div key={item.cartId} className="flex gap-4 group">
+                       <div className={`w-20 h-24 bg-gradient-to-br ${item.image} flex-shrink-0 relative overflow-hidden rounded-sm border border-white/10`}>
+                          {item.image.includes('http') ? ( <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" /> ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${item.image}`}></div> )}
+                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                       </div>
+                       <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                             <div className="flex justify-between items-start"><h3 className="font-bold text-lg">{item.title}</h3><span className="font-mono text-sm">€{item.price}</span></div>
+                             <div className="flex gap-2 text-xs text-gray-500 uppercase tracking-widest mt-1 font-mono">
+                               <span>Limited Edition</span>
+                               <span>•</span>
+                               <span className="text-orange-500 font-bold">{item.size}</span>
+                             </div>
+                          </div>
+                          <div className="flex justify-between items-center">
+                             <div className="flex items-center gap-3 bg-white/5 rounded-full px-3 py-1 border border-white/10">
+                                <button className="hover:text-orange-500 disabled:opacity-30" onClick={() => updateQuantity(item.cartId, -1)} disabled={item.quantity <= 1}><Minus className="w-3 h-3" /></button>
+                                <span className="text-xs font-mono w-4 text-center">{item.quantity}</span>
+                                <button className="hover:text-orange-500" onClick={() => updateQuantity(item.cartId, 1)}><Plus className="w-3 h-3" /></button>
+                             </div>
+                             <button className="text-gray-500 hover:text-red-500 transition-colors" onClick={() => removeFromCart(item.cartId)}><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                       </div>
+                    </div>
+                  ))
+                )}
+             </div>
+             <div className="p-6 border-t border-white/10 bg-black/90 backdrop-blur-sm">
+                <div className="flex justify-between items-end mb-6"><span className="text-gray-500 text-sm uppercase tracking-widest">Subtotaal</span><span className="text-3xl font-bold">€{cartTotal.toFixed(2)}</span></div>
+                <p className="text-xs text-gray-500 mb-6 text-center">Verzendkosten & belastingen berekend bij afrekenen</p>
+                <button 
+                  onClick={() => { setCartOpen(false); navigateTo('checkout'); }}
+                  className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  Afrekenen <ArrowRight className="w-4 h-4" />
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-200">
+          <button className="absolute top-8 right-8" onClick={() => setMobileMenuOpen(false)}><X className="w-8 h-8 text-white" /></button>
+          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('collection'); }}>Collecties</button>
+          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('process'); }}>Proces</button>
+          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('about'); }}>Over</button>
+        </div>
+      )}
 
       <style>{`
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
