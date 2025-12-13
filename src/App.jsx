@@ -4,9 +4,10 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: HERO UPDATE - SERIOUS MODE
- * - Replaced playful Teleport/Turing cards with System Metrics & Material Specs
- * - Added simulated live system load state
+ * STATUS: HERO UPDATE - SUBTLE MODE
+ * - Replaced loud cards with minimalist data lines
+ * - Reduced visual noise in hero section
+ * - Fixed ReferenceError by removing unused systemLoad logic
  */
 
 // --- SUB-COMPONENT: PRODUCT CARD (Smart Hover/Touch Logic) ---
@@ -112,7 +113,8 @@ const App = () => {
   const [instaPosts, setInstaPosts] = useState([]);
   
   // --- FUN / INTERACTIVE STATES ---
-  const [systemLoad, setSystemLoad] = useState(42);
+  const [teleportStatus, setTeleportStatus] = useState('idle');
+  const [sentienceMsg, setSentienceMsg] = useState("VERIFY_SOUL.EXE");
 
   // New states for About Section
   const [resLevel, setResLevel] = useState(0);
@@ -223,17 +225,6 @@ const App = () => {
   const [contactOpen, setContactOpen] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
-
-  // --- SYSTEM LOAD SIMULATION ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-        setSystemLoad(prev => {
-            const fluctuation = (Math.random() * 10) - 5;
-            return Math.min(99, Math.max(20, Math.floor(prev + fluctuation)));
-        });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
 
   // --- VARIATION FETCHING & SELECTION ---
   useEffect(() => {
@@ -754,81 +745,34 @@ const App = () => {
                   <p className="text-gray-400 text-lg md:text-xl max-w-md leading-relaxed">
                       Esthetische artworks gedrukt op hoog kwaliteit papier. Een blend van van neurale netwerken en tastbare kunst.                    </p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                    {/* NEW SERIOUS INTERACTIVE CARDS */}
-                    
-                    {/* Card 1: System Status -> Live Art Counter */}
-                    <div 
-                        className="group bg-white/5 p-4 rounded-sm border border-white/10 hover:border-green-500 transition-all duration-300 cursor-pointer relative overflow-hidden"
-                    >
-                        <div className="relative z-10">
-                            <div className="flex justify-between items-start mb-3">
-                                <div className="p-2 bg-white/10 w-fit rounded-full group-hover:bg-green-500/20 transition-colors duration-500">
-                                    <Sparkles className="w-5 h-5 text-white group-hover:text-green-500 transition-colors" />
-                                </div>
-                                <div className="text-[10px] font-mono text-green-500 animate-pulse">● LIVE FEED</div>
-                            </div>
-                            
-                            <h4 className="font-black text-sm mb-1 group-hover:text-green-500 transition-colors text-white">
-                                DATABASE METRICS
-                            </h4>
-                            <div className="space-y-2 mt-2">
-                                <div className="flex justify-between items-end text-xs font-mono text-gray-400">
-                                    <span>TOTAL ASSETS</span>
-                                    <span className="text-white text-2xl font-black tracking-tighter leading-none">
-                                        {products.length > 0 ? products.length : <Loader2 className="w-4 h-4 animate-spin inline" />}
-                                    </span>
-                                </div>
-                                {/* Progress bar simulating live capacity or sync status */}
-                                <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                                    <div 
-                                        className="h-full bg-green-500 animate-[pulse_3s_ease-in-out_infinite]" 
-                                        style={{ width: `${products.length > 0 ? '100%' : '10%'}` }}
-                                    ></div>
-                                </div>
-                            </div>
-                             <p className="text-[10px] font-mono text-gray-500 mt-2 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                                Auto-Sync Active
-                            </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                    {/* Minimalist Stat Block */}
+                    <div className="border-l-2 border-white/10 pl-6 py-2 hover:border-orange-500/50 transition-colors duration-300 group cursor-default">
+                        <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            <Activity className="w-3 h-3" /> System Status
+                        </h4>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-white">{products.length}</span>
+                            <span className="text-xs text-gray-400">Assets Live</span>
                         </div>
-                        <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="flex items-center gap-2 mt-2">
+                             <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                             <span className="text-[10px] text-green-500 font-mono">OPERATIONAL</span>
+                        </div>
                     </div>
 
-                    {/* Card 2: Material Specs (Updated) */}
-                    <div 
-                        className="group bg-white/5 p-4 rounded-sm border border-white/10 hover:border-blue-500 transition-all duration-300 cursor-pointer relative overflow-hidden"
-                    >
-                         <div className="absolute inset-0 bg-blue-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-                         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-                         
-                        <div className="relative z-10">
-                            <div className="mb-3 p-2 bg-white/10 w-fit rounded-full group-hover:rotate-90 transition-transform duration-700">
-                                <Layers className="w-5 h-5 text-white group-hover:text-blue-200 transition-colors" />
-                            </div>
-                            <h4 className="font-black text-sm mb-1 group-hover:text-white transition-colors text-white">
-                                MATERIAL SPECS
-                            </h4>
-                            <div className="flex flex-col gap-1.5 mt-2">
-                                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 group-hover:text-blue-100">
-                                    <span>PAPER</span>
-                                    <span className="font-bold text-white uppercase">Woodfree Satin MC</span>
-                                </div>
-                                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 group-hover:text-blue-100">
-                                    <span>WEIGHT</span>
-                                    <span className="font-bold text-white">250 GSM</span>
-                                </div>
-                                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 group-hover:text-blue-100">
-                                    <span>PRINT</span>
-                                    <span className="font-bold text-white uppercase">Full Color (1-Sided)</span>
-                                </div>
-                                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 group-hover:text-blue-100">
-                                    <span>FINISH</span>
-                                    <span className="font-bold text-white uppercase">Gloss Laminate</span>
-                                </div>
-                            </div>
+                    {/* Minimalist Specs Block */}
+                    <div className="border-l-2 border-white/10 pl-6 py-2 hover:border-blue-500/50 transition-colors duration-300 group cursor-default">
+                        <h4 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            <Layers className="w-3 h-3" /> Print Specs
+                        </h4>
+                         <div className="flex flex-col">
+                            <span className="text-sm font-bold text-white">250g/m² Woodfree Satin MC</span>
+                             <span className="text-xs text-gray-400">Gloss Laminate Finish</span>
                         </div>
-                        {/* Scanline effect on hover */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-blue-400/50 shadow-[0_0_10px_#60a5fa] opacity-0 group-hover:opacity-100 group-hover:animate-[scan_2s_linear_infinite]"></div>
+                        <div className="mt-2 text-[10px] font-mono text-gray-500">
+                            PREMIUM FINISH
+                        </div>
                     </div>
                   </div>
 
