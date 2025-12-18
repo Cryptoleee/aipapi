@@ -63,7 +63,7 @@ const Confetti = () => {
 };
 
 // --- SUB-COMPONENT: PRODUCT CARD ---
-const ProductCard = ({ product, onClick }) => {
+const ProductCard = ({ product, onClick, onAddToCart }) => {
   const [isActive, setIsActive] = useState(false);
   const [hoveredSize, setHoveredSize] = useState(null);
   const [timer, setTimer] = useState(null);
@@ -95,7 +95,7 @@ const ProductCard = ({ product, onClick }) => {
   
   const currentSize = hoveredSize || defaultSize;
   
-  // Zoek de juiste variatie en prijs
+  // Zoek de juiste variatie en prijs voor display
   const selectedVariation = variations.find(v => 
     v.attributes.some(attr => attr.option.toUpperCase() === currentSize.toUpperCase())
   );
@@ -122,16 +122,27 @@ const ProductCard = ({ product, onClick }) => {
     setIsActive(false);
   };
 
+  const handleSizeClick = (e, size) => {
+    e.stopPropagation(); // Voorkom openen modal
+    
+    // Zoek specifieke variatie voor DEZE maat (niet de hoveredSize, maar de clicked size)
+    const specificVariation = variations.find(v => 
+        v.attributes.some(attr => attr.option.toUpperCase() === size.toUpperCase())
+    );
+    const specificPrice = specificVariation ? parseFloat(specificVariation.price) : product.price;
+    const specificVarId = specificVariation ? specificVariation.id : null;
+
+    onAddToCart(product, size, specificPrice, specificVarId);
+  };
+
   return (
-    <div 
-      className="group relative cursor-pointer"
-      onTouchStart={handleTouch}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="group relative cursor-pointer">
       <div 
         className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}
         onClick={() => onClick(product)}
+        onTouchStart={handleTouch}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {product.color.includes('http') ? (
           <img 
@@ -152,20 +163,15 @@ const ProductCard = ({ product, onClick }) => {
             <Eye className="w-4 h-4" /> Bekijk Print
           </button>
         </div>
-        
-        <div className="absolute top-4 left-4">
-          <span className="bg-black/50 backdrop-blur-md text-[10px] font-mono border border-white/10 px-2 py-1 text-gray-300 uppercase">
-            {product.category}
-          </span>
-        </div>
       </div>
       <div className="mt-4 flex justify-between items-start">
         <div className="flex-1">
-          <h3 className={`text-xl font-bold transition-colors ${isActive ? 'text-orange-500' : 'text-white'}`}>{product.title}</h3>
+          <h3 className="text-xl font-bold text-white transition-colors group-hover:text-orange-500">{product.title}</h3>
           <div className="flex items-center gap-2 mt-2">
             {sizes.slice(0, 3).map((size) => (
               <button
                 key={size}
+                onClick={(e) => handleSizeClick(e, size)}
                 onMouseEnter={() => setHoveredSize(size)}
                 onMouseLeave={() => setHoveredSize(null)}
                 className={`text-[10px] font-mono px-2 py-0.5 border transition-all ${currentSize === size ? 'border-orange-500 text-orange-500 bg-orange-500/10' : 'border-white/10 text-gray-500 hover:text-white hover:border-white/30'}`}
@@ -977,6 +983,7 @@ const App = () => {
                             key={product.id}
                             product={product}
                             onClick={setSelectedProduct}
+                            onAddToCart={addToCart}
                         />
                     ))
                   )}
@@ -1106,7 +1113,7 @@ const App = () => {
                  
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo">
                      {currentProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} onClick={setSelectedProduct} />
+                        <ProductCard key={product.id} product={product} onClick={setSelectedProduct} onAddToCart={addToCart} />
                      ))}
                  </div>
                  
