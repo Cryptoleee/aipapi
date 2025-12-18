@@ -4,11 +4,17 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: MODAL IMAGE FIX
- * - Restored "Atmospheric" image presentation in Product Modal
- * - Ensures full image is visible (object-contain) with blurred background fill
- * - Maintained all previous functionality
+ * STATUS: REAL PRICES
+ * - Removed preview logic (+20)
+ * - Fetching real variation prices in ProductCard
+ * - Dynamic size buttons based on product data
  */
+
+// --- CONFIGURATIE (Global) ---
+const BEHOLD_URL = "https://feeds.behold.so/nguthImEl5LLe5wkCkaC";
+const SITE_URL = "https://www.aipostershop.nl";
+const CK = "ck_35d3827fc6d5e1c7a6919d23c78fdbfd48eb88ba";
+const CS = "cs_de3798a3f768a50e14f485c14e09cb547147bf99";
 
 // --- UTILS: CONFETTI COMPONENT ---
 const Confetti = () => {
@@ -59,7 +65,43 @@ const Confetti = () => {
 // --- SUB-COMPONENT: PRODUCT CARD ---
 const ProductCard = ({ product, onClick }) => {
   const [isActive, setIsActive] = useState(false);
+  const [hoveredSize, setHoveredSize] = useState(null);
   const [timer, setTimer] = useState(null);
+  const [variations, setVariations] = useState([]);
+
+  // Fetch variations for real prices
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVariations = async () => {
+      try {
+        const response = await fetch(`${SITE_URL}/wp-json/wc/v3/products/${product.id}/variations?consumer_key=${CK}&consumer_secret=${CS}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (isMounted) setVariations(data);
+        }
+      } catch (err) {
+        console.error("Error fetching card variations:", err);
+      }
+    };
+    fetchVariations();
+    return () => { isMounted = false; };
+  }, [product.id]);
+
+  // Determine available sizes from product data or fallback
+  const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['A2', 'A1'];
+  
+  // Default to A2 if available, otherwise first size
+  const defaultSize = sizes.find(s => s === 'A2') || sizes[0] || 'A2';
+  
+  const currentSize = hoveredSize || defaultSize;
+  
+  // Zoek de juiste variatie en prijs
+  const selectedVariation = variations.find(v => 
+    v.attributes.some(attr => attr.option.toUpperCase() === currentSize.toUpperCase())
+  );
+
+  // Gebruik de echte prijs als variatie geladen is, anders fallback naar product basisprijs
+  const displayPrice = selectedVariation ? parseFloat(selectedVariation.price) : product.price;
 
   const handleTouch = () => {
     setIsActive(true);
@@ -83,12 +125,14 @@ const ProductCard = ({ product, onClick }) => {
   return (
     <div 
       className="group relative cursor-pointer"
-      onClick={() => onClick(product)}
       onTouchStart={handleTouch}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}>
+      <div 
+        className={`relative ${product.aspect} overflow-hidden bg-gray-900 border border-white/5 rounded-sm transition-transform duration-500 hover:-translate-y-2`}
+        onClick={() => onClick(product)}
+      >
         {product.color.includes('http') ? (
           <img 
             src={product.color} 
@@ -116,11 +160,25 @@ const ProductCard = ({ product, onClick }) => {
         </div>
       </div>
       <div className="mt-4 flex justify-between items-start">
-        <div>
+        <div className="flex-1">
           <h3 className={`text-xl font-bold transition-colors ${isActive ? 'text-orange-500' : 'text-white'}`}>{product.title}</h3>
-          <p className="text-xs text-gray-500 mt-1 font-mono">EDITIE VAN 50</p>
+          <div className="flex items-center gap-2 mt-2">
+            {sizes.slice(0, 3).map((size) => (
+              <button
+                key={size}
+                onMouseEnter={() => setHoveredSize(size)}
+                onMouseLeave={() => setHoveredSize(null)}
+                className={`text-[10px] font-mono px-2 py-0.5 border transition-all ${currentSize === size ? 'border-orange-500 text-orange-500 bg-orange-500/10' : 'border-white/10 text-gray-500 hover:text-white hover:border-white/30'}`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
         </div>
-        <span className="text-lg font-medium">€{product.price}</span>
+        <div className="text-right">
+          <span className="text-lg font-medium block">€{displayPrice.toFixed(2)}</span>
+          <span className="text-[9px] font-mono text-gray-600 uppercase">incl. btw</span>
+        </div>
       </div>
     </div>
   );
@@ -131,12 +189,6 @@ const App = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // --- CONFIGURATIE ---
-  const BEHOLD_URL = "https://feeds.behold.so/nguthImEl5LLe5wkCkaC";
-  const SITE_URL = "https://www.aipostershop.nl";
-  const CK = "ck_35d3827fc6d5e1c7a6919d23c78fdbfd48eb88ba";
-  const CS = "cs_de3798a3f768a50e14f485c14e09cb547147bf99";
-
   // --- DATA STATE ---
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -256,7 +308,7 @@ const App = () => {
   // Form Data
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', company: '', email: '',
-    address: '', houseNumber: '', postcode: '', city: ''
+    address: '', houseNumber: '', postcode: '', city: '', phone: ''
   });
   const [billingCountry, setBillingCountry] = useState('NL');
   
@@ -564,6 +616,15 @@ const App = () => {
     e.preventDefault();
     setContactSubmitted(true);
     setTimeout(() => { setContactOpen(false); setContactSubmitted(false); }, 2000);
+  };
+  
+  const handleShare = (id) => {
+    setCopiedId(id);
+    const link = `${window.location.origin}/?product=${id}`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(link);
+    }
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handlePlaceOrder = async (e) => {
