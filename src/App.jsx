@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home } from 'lucide-react';
+import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home, Camera, Smartphone } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: REAL PRICES
+ * STATUS: REAL PRICES & AR SCANNER
  * - Removed preview logic (+20)
  * - Fetching real variation prices in ProductCard
  * - Dynamic size buttons based on product data
+ * - AR Scanner Module added
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -18,7 +19,7 @@ const CS = "cs_de3798a3f768a50e14f485c14e09cb547147bf99";
 
 // --- UTILS: CONFETTI COMPONENT ---
 const Confetti = () => {
-  const [particles, setParticles] = useState([]);
+  const [particles, setParticles] = useState<any[]>([]);
 
   useEffect(() => {
     const colors = ['#f97316', '#ffffff', '#22c55e', '#3b82f6'];
@@ -62,12 +63,155 @@ const Confetti = () => {
   );
 };
 
+// --- COMPONENT: AR SCANNER ---
+const ARScanner = ({ product, onClose }: { product: any; onClose: any }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [arSize, setArSize] = useState('A2'); // Default start size
+  const [isCalibrating, setIsCalibrating] = useState(true);
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+
+    const startCamera = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "environment" } // Use back camera if available
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setHasPermission(true);
+          // Fake calibration effect
+          setTimeout(() => setIsCalibrating(false), 2000);
+        }
+      } catch (err) {
+        console.error("Camera error:", err);
+        setHasPermission(false);
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Scale logic: A1 is 2x Area of A2. 
+  // Linear scale difference is sqrt(2) ≈ 1.41
+  // We use CSS scale to simulate this relative to the screen width.
+  const scale = arSize === 'A1' ? 1.41 : 1; 
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col">
+      {/* Video Background */}
+      {hasPermission === true && (
+        <video 
+          ref={videoRef} 
+          autoPlay 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-80"
+        />
+      )}
+
+      {/* Fallback if no camera */}
+      {hasPermission === false && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white z-0">
+          <p className="text-center p-6">Camera toegang geweigerd.<br/>Controleer je instellingen.</p>
+        </div>
+      )}
+
+      {/* HUD Overlay */}
+      <div className="relative z-10 flex-1 flex flex-col justify-between p-6 pointer-events-none">
+        
+        {/* Top HUD */}
+        <div className="flex justify-between items-start pointer-events-auto">
+           <div className="bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-sm text-green-400 font-mono text-xs flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              AR_MODULE_ACTIVE
+           </div>
+           <button onClick={onClose} className="bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-full text-white hover:bg-white hover:text-black transition-colors">
+              <X className="w-6 h-6" />
+           </button>
+        </div>
+
+        {/* The AR Object (Poster) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+            {/* Calibration Grid Effect */}
+            {isCalibrating && (
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-20 flex items-center justify-center">
+                    <div className="w-64 h-64 border-2 border-orange-500/50 rounded-lg animate-ping"></div>
+                    <p className="absolute mt-32 font-mono text-orange-500 text-xs tracking-widest animate-pulse">DETECTING PLANES...</p>
+                </div>
+            )}
+
+            {/* Crosshair Center */}
+            <div className="absolute w-full h-[1px] bg-white/10"></div>
+            <div className="absolute h-full w-[1px] bg-white/10"></div>
+
+            {/* Poster Frame */}
+            <div 
+                className="relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out border-4 border-white bg-black"
+                style={{
+                    width: '50vw', // Base width for A2 relative to viewport width
+                    aspectRatio: '3/4',
+                    transform: `scale(${scale})`,
+                    backgroundImage: product.color.includes('http') ? `url("${product.color}")` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                {!product.color.includes('http') && <div className={`absolute inset-0 bg-gradient-to-br ${product.color}`}></div>}
+                
+                {/* Gloss Reflection */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50"></div>
+                
+                {/* Size Label on Poster */}
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1 text-xs font-mono border border-white/20 rounded-full whitespace-nowrap">
+                    {arSize} PREVIEW
+                </div>
+            </div>
+        </div>
+
+        {/* Bottom HUD Controls */}
+        <div className="pointer-events-auto space-y-4">
+            <div className="flex justify-center gap-4">
+                <button 
+                    onClick={() => setArSize('A2')}
+                    className={`px-6 py-3 font-bold text-sm border rounded-sm transition-all ${arSize === 'A2' ? 'bg-orange-500 border-orange-500 text-black' : 'bg-black/50 border-white/20 text-white backdrop-blur-md'}`}
+                >
+                    A2
+                </button>
+                <button 
+                    onClick={() => setArSize('A1')}
+                    className={`px-6 py-3 font-bold text-sm border rounded-sm transition-all ${arSize === 'A1' ? 'bg-orange-500 border-orange-500 text-black' : 'bg-black/50 border-white/20 text-white backdrop-blur-md'}`}
+                >
+                    A1
+                </button>
+            </div>
+            <p className="text-center text-[10px] text-gray-300 font-mono bg-black/40 p-2 rounded-sm backdrop-blur-sm">
+                Houd je telefoon op armlengte voor het beste resultaat.
+            </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- SUB-COMPONENT: PRODUCT CARD ---
-const ProductCard = ({ product, onClick, onAddToCart }) => {
+interface ProductCardProps {
+  product: any;
+  onClick: any;
+  onAddToCart: any;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart }) => {
   const [isActive, setIsActive] = useState(false);
-  const [hoveredSize, setHoveredSize] = useState(null);
-  const [timer, setTimer] = useState(null);
-  const [variations, setVariations] = useState([]);
+  const [hoveredSize, setHoveredSize] = useState<string | null>(null);
+  const [timer, setTimer] = useState<any>(null);
+  const [variations, setVariations] = useState<any[]>([]);
 
   // Fetch variations for real prices
   useEffect(() => {
@@ -91,13 +235,13 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
   const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['A2', 'A1'];
   
   // Default to A2 if available, otherwise first size
-  const defaultSize = sizes.find(s => s === 'A2') || sizes[0] || 'A2';
+  const defaultSize = sizes.find((s: string) => s === 'A2') || sizes[0] || 'A2';
   
   const currentSize = hoveredSize || defaultSize;
   
   // Zoek de juiste variatie en prijs voor display
   const selectedVariation = variations.find(v => 
-    v.attributes.some(attr => attr.option.toUpperCase() === currentSize.toUpperCase())
+    v.attributes.some((attr: any) => attr.option.toUpperCase() === currentSize.toUpperCase())
   );
 
   // Gebruik de echte prijs als variatie geladen is, anders fallback naar product basisprijs
@@ -122,12 +266,12 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
     setIsActive(false);
   };
 
-  const handleSizeClick = (e, size) => {
+  const handleSizeClick = (e: any, size: string) => {
     e.stopPropagation(); // Voorkom openen modal
     
     // Zoek specifieke variatie voor DEZE maat (niet de hoveredSize, maar de clicked size)
     const specificVariation = variations.find(v => 
-        v.attributes.some(attr => attr.option.toUpperCase() === size.toUpperCase())
+        v.attributes.some((attr: any) => attr.option.toUpperCase() === size.toUpperCase())
     );
     const specificPrice = specificVariation ? parseFloat(specificVariation.price) : product.price;
     const specificVarId = specificVariation ? specificVariation.id : null;
@@ -156,6 +300,7 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         )}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         
+        {/* Hover Overlay - Only shows on Image Hover */}
         <div 
           className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
         >
@@ -168,7 +313,7 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white transition-colors group-hover:text-orange-500">{product.title}</h3>
           <div className="flex items-center gap-2 mt-2">
-            {sizes.slice(0, 3).map((size) => (
+            {sizes.slice(0, 3).map((size: string) => (
               <button
                 key={size}
                 onClick={(e) => handleSizeClick(e, size)}
@@ -196,26 +341,29 @@ const App = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // --- DATA STATE ---
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Cart State
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([]); 
-  const [lastOrderedItems, setLastOrderedItems] = useState([]);
+  const [cartItems, setCartItems] = useState<any[]>([]); 
+  const [lastOrderedItems, setLastOrderedItems] = useState<any[]>([]);
 
   // Product Selection State
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState('A2');
-  const [productVariations, setProductVariations] = useState([]); 
+  const [productVariations, setProductVariations] = useState<any[]>([]); 
   const [loadingVariations, setLoadingVariations] = useState(false);
+  
+  // --- AR STATE ---
+  const [showAR, setShowAR] = useState(false);
 
   // Share State
-  const [copiedId, setCopiedId] = useState(null);
+  const [copiedId, setCopiedId] = useState<any>(null);
 
   // Instagram State
-  const [instaPosts, setInstaPosts] = useState([]);
+  const [instaPosts, setInstaPosts] = useState<any[]>([]);
   
   // --- FUN / INTERACTIVE STATES ---
   const [teleportStatus, setTeleportStatus] = useState('idle');
@@ -231,7 +379,7 @@ const App = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // --- PAYMENT STATE ---
-  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
   // --- FIGURINE EXPLODED VIEW DATA ---
@@ -285,7 +433,7 @@ const App = () => {
         try {
              const response = await fetch(`${SITE_URL}/wp-json/wc/v3/payment_gateways?consumer_key=${CK}&consumer_secret=${CS}`);
              const data = await response.json();
-             const enabled = data.filter(g => g.enabled);
+             const enabled = data.filter((g: any) => g.enabled);
              if (enabled.length > 0) {
                  setPaymentMethods(enabled);
                  setSelectedPaymentMethod(enabled[0].id);
@@ -325,8 +473,8 @@ const App = () => {
   });
   const [shippingCountry, setShippingCountry] = useState('NL');
 
-  const handleBillingChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
-  const handleShippingChange = (e) => setShippingData({...shippingData, [e.target.name]: e.target.value});
+  const handleBillingChange = (e: any) => setFormData({...formData, [e.target.name]: e.target.value});
+  const handleShippingChange = (e: any) => setShippingData({...shippingData, [e.target.name]: e.target.value});
 
   // --- HERO SHOWCASE STATE ---
   const [heroIndex, setHeroIndex] = useState(0);
@@ -350,7 +498,7 @@ const App = () => {
     }
     
     if(selectedProduct.sizes && selectedProduct.sizes.length > 0) {
-        const hasA2 = selectedProduct.sizes.some(s => s.toUpperCase() === 'A2');
+        const hasA2 = selectedProduct.sizes.some((s: string) => s.toUpperCase() === 'A2');
         if (hasA2) {
             setSelectedSize('A2');
         } else {
@@ -383,7 +531,7 @@ const App = () => {
   const selectedVariation = useMemo(() => {
     if (!selectedProduct || productVariations.length === 0) return null;
     return productVariations.find(v => 
-      v.attributes.some(attr => attr.option.toUpperCase() === selectedSize.toUpperCase())
+      v.attributes.some((attr: any) => attr.option.toUpperCase() === selectedSize.toUpperCase())
     );
   }, [selectedProduct, selectedSize, productVariations]);
 
@@ -464,8 +612,8 @@ const App = () => {
         if (!response.ok) throw new Error("Fout bij ophalen data");
         const wpData = await response.json();
         
-        const mappedProducts = wpData.map(wpProduct => {
-          const sizeAttr = wpProduct.attributes?.find(a => a.name.toLowerCase() === 'formaat' || a.name.toLowerCase() === 'size');
+        const mappedProducts = wpData.map((wpProduct: any) => {
+          const sizeAttr = wpProduct.attributes?.find((a: any) => a.name.toLowerCase() === 'formaat' || a.name.toLowerCase() === 'size');
           const availableSizes = sizeAttr ? sizeAttr.options : ['A1', 'A2']; 
 
           return {
@@ -517,7 +665,7 @@ const App = () => {
       fetchInstagram();
   }, []);
 
-  const addToCart = (product, size, price, variationId) => {
+  const addToCart = (product: any, size: string, price: number, variationId?: number) => {
     const cartId = `${product.id}-${size}`; 
     setCartItems(prev => {
       const existing = prev.find(item => item.cartId === cartId);
@@ -538,7 +686,7 @@ const App = () => {
     setCartOpen(true);
   };
 
-  const updateQuantity = (cartId, delta) => {
+  const updateQuantity = (cartId: string, delta: number) => {
     setCartItems(prev => prev.map(item => {
       if (item.cartId === cartId) {
         const newQuantity = Math.max(1, item.quantity + delta);
@@ -548,11 +696,11 @@ const App = () => {
     }));
   };
 
-  const removeFromCart = (cartId) => {
+  const removeFromCart = (cartId: string) => {
     setCartItems(prev => prev.filter(item => item.cartId !== cartId));
   };
   
-  const navigateTo = (targetView) => {
+  const navigateTo = (targetView: string) => {
     setView(targetView);
     setMobileMenuOpen(false); 
     window.scrollTo(0, 0);
@@ -574,13 +722,13 @@ const App = () => {
     }
   };
 
-  const goToPage = (i) => {
+  const goToPage = (i: number) => {
     setSlideDirection(i > collectionPage ? 'right' : 'left');
     setCollectionPage(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCommissionSubmit = async (e) => {
+  const handleCommissionSubmit = async (e: any) => {
     e.preventDefault();
     setIsUploading(true);
 
@@ -618,13 +766,13 @@ const App = () => {
     }
   };
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = (e: any) => {
     e.preventDefault();
     setContactSubmitted(true);
     setTimeout(() => { setContactOpen(false); setContactSubmitted(false); }, 2000);
   };
   
-  const handleShare = (id) => {
+  const handleShare = (id: any) => {
     setCopiedId(id);
     const link = `${window.location.origin}/?product=${id}`;
     if (navigator.clipboard) {
@@ -633,7 +781,7 @@ const App = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handlePlaceOrder = async (e) => {
+  const handlePlaceOrder = async (e: any) => {
     if (e) e.preventDefault();
 
     if (!termsAccepted) {
@@ -659,16 +807,17 @@ const App = () => {
   };
 
   useEffect(() => {
-    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
+    const handleMouseMove = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('scroll', handleScroll);
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedProduct(null);
         setCommissionOpen(false);
         setContactOpen(false);
         setCartOpen(false);
+        setShowAR(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -696,6 +845,11 @@ const App = () => {
   return (
     <div className="bg-black min-h-screen text-white font-sans selection:bg-orange-500 selection:text-black overflow-x-hidden relative">
       
+      {/* AR SCANNER OVERLAY */}
+      {showAR && selectedProduct && (
+        <ARScanner product={selectedProduct} onClose={() => setShowAR(false)} />
+      )}
+
       {/* Background stays dark for main app, but we will override for checkout/thankyou */}
       <div className={`fixed inset-0 z-0 pointer-events-none ${view === 'checkout' || view === 'thankyou' ? 'hidden' : 'block'}`}>
           <div 
@@ -1739,6 +1893,17 @@ const App = () => {
              <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
              <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden shrink-0">
                  {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
+                 
+                 {/* AR TRIGGER BUTTON OVERLAY */}
+                 <div className="absolute top-4 left-4 z-20">
+                    <button 
+                        onClick={() => setShowAR(true)}
+                        className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
+                    >
+                        <Smartphone className="w-4 h-4 text-orange-500" />
+                        View in AR
+                    </button>
+                 </div>
              </div>
              <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
                  {/* ... Details & Add to Cart ... */}
@@ -1752,7 +1917,7 @@ const App = () => {
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
                               <div className="flex gap-2 justify-end flex-wrap">
                                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                                    selectedProduct.sizes.map(size => (
+                                    selectedProduct.sizes.map((size: string) => (
                                        <button
                                           key={size}
                                           onClick={() => setSelectedSize(size)}
