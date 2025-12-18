@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home, Camera, Smartphone } from 'lucide-react';
+import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: REAL PRICES & AR SCANNER
+ * STATUS: REAL PRICES
  * - Removed preview logic (+20)
  * - Fetching real variation prices in ProductCard
  * - Dynamic size buttons based on product data
- * - AR Scanner Module added
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -59,143 +58,6 @@ const Confetti = () => {
           100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
         }
       `}</style>
-    </div>
-  );
-};
-
-// --- COMPONENT: AR SCANNER ---
-const ARScanner = ({ product, onClose }) => {
-  const videoRef = useRef(null);
-  const [hasPermission, setHasPermission] = useState(null);
-  const [arSize, setArSize] = useState('A2'); // Default start size
-  const [isCalibrating, setIsCalibrating] = useState(true);
-
-  useEffect(() => {
-    let stream = null;
-
-    const startCamera = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" } // Use back camera if available
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setHasPermission(true);
-          // Fake calibration effect
-          setTimeout(() => setIsCalibrating(false), 2000);
-        }
-      } catch (err) {
-        console.error("Camera error:", err);
-        setHasPermission(false);
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
-  // Scale logic: A1 is 2x Area of A2. 
-  // Linear scale difference is sqrt(2) ≈ 1.41
-  // We use CSS scale to simulate this relative to the screen width.
-  const scale = arSize === 'A1' ? 1.41 : 1; 
-
-  return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col">
-      {/* Video Background */}
-      {hasPermission === true && (
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
-          className="absolute inset-0 w-full h-full object-cover z-0 opacity-80"
-        />
-      )}
-
-      {/* Fallback if no camera */}
-      {hasPermission === false && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white z-0">
-          <p className="text-center p-6">Camera toegang geweigerd.<br/>Controleer je instellingen.</p>
-        </div>
-      )}
-
-      {/* HUD Overlay */}
-      <div className="relative z-10 flex-1 flex flex-col justify-between p-6 pointer-events-none">
-        
-        {/* Top HUD */}
-        <div className="flex justify-between items-start pointer-events-auto">
-           <div className="bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-sm text-green-400 font-mono text-xs flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              AR_MODULE_ACTIVE
-           </div>
-           <button onClick={onClose} className="bg-black/50 backdrop-blur-md border border-white/20 p-2 rounded-full text-white hover:bg-white hover:text-black transition-colors">
-              <X className="w-6 h-6" />
-           </button>
-        </div>
-
-        {/* The AR Object (Poster) */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-            {/* Calibration Grid Effect */}
-            {isCalibrating && (
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-20 flex items-center justify-center">
-                    <div className="w-64 h-64 border-2 border-orange-500/50 rounded-lg animate-ping"></div>
-                    <p className="absolute mt-32 font-mono text-orange-500 text-xs tracking-widest animate-pulse">DETECTING PLANES...</p>
-                </div>
-            )}
-
-            {/* Crosshair Center */}
-            <div className="absolute w-full h-[1px] bg-white/10"></div>
-            <div className="absolute h-full w-[1px] bg-white/10"></div>
-
-            {/* Poster Frame */}
-            <div 
-                className="relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out border-4 border-white bg-black"
-                style={{
-                    width: '50vw', // Base width for A2 relative to viewport width
-                    aspectRatio: '3/4',
-                    transform: `scale(${scale})`,
-                    backgroundImage: product.color.includes('http') ? `url("${product.color}")` : undefined,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                }}
-            >
-                {!product.color.includes('http') && <div className={`absolute inset-0 bg-gradient-to-br ${product.color}`}></div>}
-                
-                {/* Gloss Reflection */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-50"></div>
-                
-                {/* Size Label on Poster */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 py-1 text-xs font-mono border border-white/20 rounded-full whitespace-nowrap">
-                    {arSize} PREVIEW
-                </div>
-            </div>
-        </div>
-
-        {/* Bottom HUD Controls */}
-        <div className="pointer-events-auto space-y-4">
-            <div className="flex justify-center gap-4">
-                <button 
-                    onClick={() => setArSize('A2')}
-                    className={`px-6 py-3 font-bold text-sm border rounded-sm transition-all ${arSize === 'A2' ? 'bg-orange-500 border-orange-500 text-black' : 'bg-black/50 border-white/20 text-white backdrop-blur-md'}`}
-                >
-                    A2
-                </button>
-                <button 
-                    onClick={() => setArSize('A1')}
-                    className={`px-6 py-3 font-bold text-sm border rounded-sm transition-all ${arSize === 'A1' ? 'bg-orange-500 border-orange-500 text-black' : 'bg-black/50 border-white/20 text-white backdrop-blur-md'}`}
-                >
-                    A1
-                </button>
-            </div>
-            <p className="text-center text-[10px] text-gray-300 font-mono bg-black/40 p-2 rounded-sm backdrop-blur-sm">
-                Houd je telefoon op armlengte voor het beste resultaat.
-            </p>
-        </div>
-      </div>
     </div>
   );
 };
@@ -294,7 +156,6 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         )}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         
-        {/* Hover Overlay - Only shows on Image Hover */}
         <div 
           className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
         >
@@ -307,7 +168,7 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white transition-colors group-hover:text-orange-500">{product.title}</h3>
           <div className="flex items-center gap-2 mt-2">
-            {sizes.slice(0, 3).map(size => (
+            {sizes.slice(0, 3).map((size) => (
               <button
                 key={size}
                 onClick={(e) => handleSizeClick(e, size)}
@@ -349,9 +210,6 @@ const App = () => {
   const [selectedSize, setSelectedSize] = useState('A2');
   const [productVariations, setProductVariations] = useState([]); 
   const [loadingVariations, setLoadingVariations] = useState(false);
-  
-  // --- AR STATE ---
-  const [showAR, setShowAR] = useState(false);
 
   // Share State
   const [copiedId, setCopiedId] = useState(null);
@@ -754,7 +612,7 @@ const App = () => {
         }
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Kon geen verbinding maken met the server.");
+        alert("Kon geen verbinding maken met de server.");
     } finally {
         setIsUploading(false);
     }
@@ -811,7 +669,6 @@ const App = () => {
         setCommissionOpen(false);
         setContactOpen(false);
         setCartOpen(false);
-        setShowAR(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -839,11 +696,6 @@ const App = () => {
   return (
     <div className="bg-black min-h-screen text-white font-sans selection:bg-orange-500 selection:text-black overflow-x-hidden relative">
       
-      {/* AR SCANNER OVERLAY */}
-      {showAR && selectedProduct && (
-        <ARScanner product={selectedProduct} onClose={() => setShowAR(false)} />
-      )}
-
       {/* Background stays dark for main app, but we will override for checkout/thankyou */}
       <div className={`fixed inset-0 z-0 pointer-events-none ${view === 'checkout' || view === 'thankyou' ? 'hidden' : 'block'}`}>
           <div 
@@ -1887,17 +1739,6 @@ const App = () => {
              <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
              <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden shrink-0">
                  {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
-                 
-                 {/* AR TRIGGER BUTTON OVERLAY */}
-                 <div className="absolute top-4 left-4 z-20">
-                    <button 
-                        onClick={() => setShowAR(true)}
-                        className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
-                    >
-                        <Smartphone className="w-4 h-4 text-orange-500" />
-                        View in AR
-                    </button>
-                 </div>
              </div>
              <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
                  {/* ... Details & Add to Cart ... */}
