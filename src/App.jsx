@@ -19,7 +19,7 @@ const CS = "cs_de3798a3f768a50e14f485c14e09cb547147bf99";
 
 // --- UTILS: CONFETTI COMPONENT ---
 const Confetti = () => {
-  const [particles, setParticles] = useState<any[]>([]);
+  const [particles, setParticles] = useState([]);
 
   useEffect(() => {
     const colors = ['#f97316', '#ffffff', '#22c55e', '#3b82f6'];
@@ -64,14 +64,14 @@ const Confetti = () => {
 };
 
 // --- COMPONENT: AR SCANNER ---
-const ARScanner = ({ product, onClose }: { product: any; onClose: any }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+const ARScanner = ({ product, onClose }) => {
+  const videoRef = useRef(null);
+  const [hasPermission, setHasPermission] = useState(null);
   const [arSize, setArSize] = useState('A2'); // Default start size
   const [isCalibrating, setIsCalibrating] = useState(true);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
+    let stream = null;
 
     const startCamera = async () => {
       try {
@@ -201,17 +201,11 @@ const ARScanner = ({ product, onClose }: { product: any; onClose: any }) => {
 };
 
 // --- SUB-COMPONENT: PRODUCT CARD ---
-interface ProductCardProps {
-  product: any;
-  onClick: any;
-  onAddToCart: any;
-}
-
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart }) => {
+const ProductCard = ({ product, onClick, onAddToCart }) => {
   const [isActive, setIsActive] = useState(false);
-  const [hoveredSize, setHoveredSize] = useState<string | null>(null);
-  const [timer, setTimer] = useState<any>(null);
-  const [variations, setVariations] = useState<any[]>([]);
+  const [hoveredSize, setHoveredSize] = useState(null);
+  const [timer, setTimer] = useState(null);
+  const [variations, setVariations] = useState([]);
 
   // Fetch variations for real prices
   useEffect(() => {
@@ -235,13 +229,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart
   const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['A2', 'A1'];
   
   // Default to A2 if available, otherwise first size
-  const defaultSize = sizes.find((s: string) => s === 'A2') || sizes[0] || 'A2';
+  const defaultSize = sizes.find(s => s === 'A2') || sizes[0] || 'A2';
   
   const currentSize = hoveredSize || defaultSize;
   
   // Zoek de juiste variatie en prijs voor display
   const selectedVariation = variations.find(v => 
-    v.attributes.some((attr: any) => attr.option.toUpperCase() === currentSize.toUpperCase())
+    v.attributes.some(attr => attr.option.toUpperCase() === currentSize.toUpperCase())
   );
 
   // Gebruik de echte prijs als variatie geladen is, anders fallback naar product basisprijs
@@ -266,12 +260,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart
     setIsActive(false);
   };
 
-  const handleSizeClick = (e: any, size: string) => {
+  const handleSizeClick = (e, size) => {
     e.stopPropagation(); // Voorkom openen modal
     
     // Zoek specifieke variatie voor DEZE maat (niet de hoveredSize, maar de clicked size)
     const specificVariation = variations.find(v => 
-        v.attributes.some((attr: any) => attr.option.toUpperCase() === size.toUpperCase())
+        v.attributes.some(attr => attr.option.toUpperCase() === size.toUpperCase())
     );
     const specificPrice = specificVariation ? parseFloat(specificVariation.price) : product.price;
     const specificVarId = specificVariation ? specificVariation.id : null;
@@ -313,7 +307,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, onAddToCart
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white transition-colors group-hover:text-orange-500">{product.title}</h3>
           <div className="flex items-center gap-2 mt-2">
-            {sizes.slice(0, 3).map((size: string) => (
+            {sizes.slice(0, 3).map(size => (
               <button
                 key={size}
                 onClick={(e) => handleSizeClick(e, size)}
@@ -341,29 +335,29 @@ const App = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // --- DATA STATE ---
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Cart State
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]); 
-  const [lastOrderedItems, setLastOrderedItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState([]); 
+  const [lastOrderedItems, setLastOrderedItems] = useState([]);
 
   // Product Selection State
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedSize, setSelectedSize] = useState('A2');
-  const [productVariations, setProductVariations] = useState<any[]>([]); 
+  const [productVariations, setProductVariations] = useState([]); 
   const [loadingVariations, setLoadingVariations] = useState(false);
   
   // --- AR STATE ---
   const [showAR, setShowAR] = useState(false);
 
   // Share State
-  const [copiedId, setCopiedId] = useState<any>(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   // Instagram State
-  const [instaPosts, setInstaPosts] = useState<any[]>([]);
+  const [instaPosts, setInstaPosts] = useState([]);
   
   // --- FUN / INTERACTIVE STATES ---
   const [teleportStatus, setTeleportStatus] = useState('idle');
@@ -379,7 +373,7 @@ const App = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // --- PAYMENT STATE ---
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
   // --- FIGURINE EXPLODED VIEW DATA ---
@@ -433,7 +427,7 @@ const App = () => {
         try {
              const response = await fetch(`${SITE_URL}/wp-json/wc/v3/payment_gateways?consumer_key=${CK}&consumer_secret=${CS}`);
              const data = await response.json();
-             const enabled = data.filter((g: any) => g.enabled);
+             const enabled = data.filter(g => g.enabled);
              if (enabled.length > 0) {
                  setPaymentMethods(enabled);
                  setSelectedPaymentMethod(enabled[0].id);
@@ -473,8 +467,8 @@ const App = () => {
   });
   const [shippingCountry, setShippingCountry] = useState('NL');
 
-  const handleBillingChange = (e: any) => setFormData({...formData, [e.target.name]: e.target.value});
-  const handleShippingChange = (e: any) => setShippingData({...shippingData, [e.target.name]: e.target.value});
+  const handleBillingChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
+  const handleShippingChange = (e) => setShippingData({...shippingData, [e.target.name]: e.target.value});
 
   // --- HERO SHOWCASE STATE ---
   const [heroIndex, setHeroIndex] = useState(0);
@@ -498,7 +492,7 @@ const App = () => {
     }
     
     if(selectedProduct.sizes && selectedProduct.sizes.length > 0) {
-        const hasA2 = selectedProduct.sizes.some((s: string) => s.toUpperCase() === 'A2');
+        const hasA2 = selectedProduct.sizes.some(s => s.toUpperCase() === 'A2');
         if (hasA2) {
             setSelectedSize('A2');
         } else {
@@ -531,7 +525,7 @@ const App = () => {
   const selectedVariation = useMemo(() => {
     if (!selectedProduct || productVariations.length === 0) return null;
     return productVariations.find(v => 
-      v.attributes.some((attr: any) => attr.option.toUpperCase() === selectedSize.toUpperCase())
+      v.attributes.some(attr => attr.option.toUpperCase() === selectedSize.toUpperCase())
     );
   }, [selectedProduct, selectedSize, productVariations]);
 
@@ -612,8 +606,8 @@ const App = () => {
         if (!response.ok) throw new Error("Fout bij ophalen data");
         const wpData = await response.json();
         
-        const mappedProducts = wpData.map((wpProduct: any) => {
-          const sizeAttr = wpProduct.attributes?.find((a: any) => a.name.toLowerCase() === 'formaat' || a.name.toLowerCase() === 'size');
+        const mappedProducts = wpData.map(wpProduct => {
+          const sizeAttr = wpProduct.attributes?.find(a => a.name.toLowerCase() === 'formaat' || a.name.toLowerCase() === 'size');
           const availableSizes = sizeAttr ? sizeAttr.options : ['A1', 'A2']; 
 
           return {
@@ -665,7 +659,7 @@ const App = () => {
       fetchInstagram();
   }, []);
 
-  const addToCart = (product: any, size: string, price: number, variationId?: number) => {
+  const addToCart = (product, size, price, variationId) => {
     const cartId = `${product.id}-${size}`; 
     setCartItems(prev => {
       const existing = prev.find(item => item.cartId === cartId);
@@ -686,7 +680,7 @@ const App = () => {
     setCartOpen(true);
   };
 
-  const updateQuantity = (cartId: string, delta: number) => {
+  const updateQuantity = (cartId, delta) => {
     setCartItems(prev => prev.map(item => {
       if (item.cartId === cartId) {
         const newQuantity = Math.max(1, item.quantity + delta);
@@ -696,11 +690,11 @@ const App = () => {
     }));
   };
 
-  const removeFromCart = (cartId: string) => {
+  const removeFromCart = (cartId) => {
     setCartItems(prev => prev.filter(item => item.cartId !== cartId));
   };
   
-  const navigateTo = (targetView: string) => {
+  const navigateTo = (targetView) => {
     setView(targetView);
     setMobileMenuOpen(false); 
     window.scrollTo(0, 0);
@@ -722,13 +716,13 @@ const App = () => {
     }
   };
 
-  const goToPage = (i: number) => {
+  const goToPage = (i) => {
     setSlideDirection(i > collectionPage ? 'right' : 'left');
     setCollectionPage(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCommissionSubmit = async (e: any) => {
+  const handleCommissionSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
 
@@ -760,19 +754,19 @@ const App = () => {
         }
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Kon geen verbinding maken met de server.");
+        alert("Kon geen verbinding maken met the server.");
     } finally {
         setIsUploading(false);
     }
   };
 
-  const handleContactSubmit = (e: any) => {
+  const handleContactSubmit = (e) => {
     e.preventDefault();
     setContactSubmitted(true);
     setTimeout(() => { setContactOpen(false); setContactSubmitted(false); }, 2000);
   };
   
-  const handleShare = (id: any) => {
+  const handleShare = (id) => {
     setCopiedId(id);
     const link = `${window.location.origin}/?product=${id}`;
     if (navigator.clipboard) {
@@ -781,7 +775,7 @@ const App = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handlePlaceOrder = async (e: any) => {
+  const handlePlaceOrder = async (e) => {
     if (e) e.preventDefault();
 
     if (!termsAccepted) {
@@ -807,11 +801,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
+    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('scroll', handleScroll);
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setSelectedProduct(null);
         setCommissionOpen(false);
@@ -1917,7 +1911,7 @@ const App = () => {
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
                               <div className="flex gap-2 justify-end flex-wrap">
                                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                                    selectedProduct.sizes.map((size: string) => (
+                                    selectedProduct.sizes.map(size => (
                                        <button
                                           key={size}
                                           onClick={() => setSelectedSize(size)}
