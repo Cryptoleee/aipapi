@@ -68,8 +68,7 @@ const ARScanner = ({ product, onClose }) => {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // Check for WebXR support
-    // We use bracket notation or direct access assuming browser support checking
+    // Check for WebXR support using standard JS checks
     if (!navigator.xr) {
       setArStatus('error');
       setErrorMsg("WebXR wordt niet ondersteund in deze browser. Gebruik Chrome op Android of een WebXR viewer.");
@@ -88,13 +87,14 @@ const ARScanner = ({ product, onClose }) => {
     if (!containerRef.current) return;
 
     try {
-      const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] });
+      const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test', 'dom-overlay'], optionalFeatures: ['dom-overlay'], domOverlay: { root: containerRef.current } });
       setArStatus('scanning');
 
       // THREE JS SETUP
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.xr.enabled = true;
+      renderer.xr.setReferenceSpaceType('local');
       
       // Scene
       const scene = new THREE.Scene();
@@ -110,7 +110,7 @@ const ARScanner = ({ product, onClose }) => {
       // Reticle (The cursor)
       const reticle = new THREE.Mesh(
         new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
-        new THREE.MeshBasicMaterial({ color: 0xffffff }) // White ring
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
       );
       reticle.matrixAutoUpdate = false;
       reticle.visible = false;
@@ -124,8 +124,8 @@ const ARScanner = ({ product, onClose }) => {
       const texture = textureLoader.load(imageUrl);
       
       // Calculate aspect ratio (default A2 roughly 1:1.414)
-      const posterWidth = 0.42; // 42cm width (A2 size approx)
-      const posterHeight = 0.594; // 59.4cm height
+      const posterWidth = 0.42; 
+      const posterHeight = 0.594;
       
       const geometry = new THREE.PlaneGeometry(posterWidth, posterHeight);
       const material = new THREE.MeshPhongMaterial({ map: texture, side: THREE.DoubleSide });
@@ -152,7 +152,7 @@ const ARScanner = ({ product, onClose }) => {
             session.addEventListener('end', () => {
                 hitTestSourceRequested = false;
                 hitTestSource = null;
-                onClose(); // Close app overlay when AR closes
+                onClose(); 
             });
             hitTestSourceRequested = true;
           }
@@ -182,10 +182,10 @@ const ARScanner = ({ product, onClose }) => {
       };
 
       session.addEventListener('select', onSelect);
-      renderer.setAnimationLoop(render);
       
-      // Start session - using window.XRWebGLLayer to avoid TS checks and match WebXR spec in JS
-      await session.updateRenderState({ baseLayer: new XRWebGLLayer(session, renderer.getContext()) });
+      // Use Three.js session manager instead of manual layer creation
+      await renderer.xr.setSession(session);
+      renderer.setAnimationLoop(render);
       
     } catch (e) {
       console.error("AR Start Error", e);
@@ -1978,7 +1978,7 @@ const App = () => {
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
                               <div className="flex gap-2 justify-end flex-wrap">
                                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                                    selectedProduct.sizes.map((size) => (
+                                    selectedProduct.sizes.map(size => (
                                        <button
                                           key={size}
                                           onClick={() => setSelectedSize(size)}
