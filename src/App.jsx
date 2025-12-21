@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home } from 'lucide-react';
+import * as THREE from 'three';
+import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home, Camera, Smartphone, RotateCcw } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: REAL PRICES
- * - Removed preview logic (+20)
- * - Fetching real variation prices in ProductCard
- * - Dynamic size buttons based on product data
+ * STATUS: REAL PRICES & TRUE AR (WebXR)
+ * - True AR with Wall/Floor detection via Three.js WebXR
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -62,8 +61,222 @@ const Confetti = () => {
   );
 };
 
+// --- COMPONENT: TRUE AR SCANNER (WebXR) ---
+const ARScanner = ({ product, onClose }) => {
+  const containerRef = useRef(null);
+  const [arStatus, setArStatus] = useState('init'); // init, scanning, placed, error
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    // Check for WebXR support
+    if (!(navigator as any).xr) {
+      setArStatus('error');
+      setErrorMsg("WebXR wordt niet ondersteund in deze browser. Gebruik Chrome op Android of een WebXR viewer.");
+      return;
+    }
+
+    (navigator as any).xr.isSessionSupported('immersive-ar').then((supported) => {
+      if (!supported) {
+        setArStatus('error');
+        setErrorMsg("AR wordt niet ondersteund op dit apparaat/browser.");
+      }
+    });
+  }, []);
+
+  const startAR = async () => {
+    if (!containerRef.current) return;
+
+    try {
+      const session = await (navigator as any).xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] });
+      setArStatus('scanning');
+
+      // THREE JS SETUP
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
+      // Append renderer directly to body to go fullscreen immersive
+      // Note: In standard WebXR, the canvas usually replaces the view or is handled by the browser. 
+      // We attach it to a container but when session starts, it takes over.
+      
+      // Scene
+      const scene = new THREE.Scene();
+
+      // Light
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+      light.position.set(0.5, 1, 0.25);
+      scene.add(light);
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+      // Reticle (The cursor)
+      const reticle = new THREE.Mesh(
+        new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0xffffff }) // Orange ring
+      );
+      reticle.matrixAutoUpdate = false;
+      reticle.visible = false;
+      scene.add(reticle);
+
+      // Product Mesh (The Poster)
+      const textureLoader = new THREE.TextureLoader();
+      // Enable CORS for external images
+      textureLoader.setCrossOrigin('anonymous');
+      
+      const imageUrl = product.color.includes('http') ? product.color : 'https://placehold.co/600x800/orange/white?text=No+Image';
+      const texture = textureLoader.load(imageUrl);
+      
+      // Calculate aspect ratio (default A2 roughly 1:1.414)
+      const posterWidth = 0.42; // 42cm width (A2 size approx)
+      const posterHeight = 0.594; // 59.4cm height
+      
+      const geometry = new THREE.PlaneGeometry(posterWidth, posterHeight);
+      const material = new THREE.MeshPhongMaterial({ map: texture, side: THREE.DoubleSide });
+      const posterMesh = new THREE.Mesh(geometry, material);
+      posterMesh.visible = false;
+      scene.add(posterMesh);
+
+      // Hit Test Source
+      let hitTestSource = null;
+      let hitTestSourceRequested = false;
+
+      // Render Loop
+      const render = (timestamp, frame) => {
+        if (frame) {
+          const referenceSpace = renderer.xr.getReferenceSpace();
+          const session = renderer.xr.getSession();
+
+          if (hitTestSourceRequested === false) {
+            session.requestReferenceSpace('viewer').then((refSpace) => {
+              session.requestHitTestSource({ space: refSpace }).then((source) => {
+                hitTestSource = source;
+              });
+            });
+            session.addEventListener('end', () => {
+                hitTestSourceRequested = false;
+                hitTestSource = null;
+                onClose(); // Close app overlay when AR closes
+            });
+            hitTestSourceRequested = true;
+          }
+
+          if (hitTestSource) {
+            const hitTestResults = frame.getHitTestResults(hitTestSource);
+            if (hitTestResults.length > 0) {
+              const hit = hitTestResults[0];
+              reticle.visible = true;
+              reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
+            } else {
+              reticle.visible = false;
+            }
+          }
+        }
+        renderer.render(scene, camera);
+      };
+
+      // Handle Tap
+      const onSelect = () => {
+        if (reticle.visible) {
+          posterMesh.position.setFromMatrixPosition(reticle.matrix);
+          // Make poster look at camera initially, but standing upright? 
+          // For simple wall placement, aligning with reticle (which aligns with surface) is usually best.
+          posterMesh.quaternion.setFromRotationMatrix(reticle.matrix);
+          // If it's a floor (horizontal), maybe we want to stand it up?
+          // For now, let's just place it flat on the surface detected (wall or floor).
+          
+          posterMesh.visible = true;
+          setArStatus('placed');
+        }
+      };
+
+      session.addEventListener('select', onSelect);
+      renderer.setAnimationLoop(render);
+      
+      // Start session
+      await session.updateRenderState({ baseLayer: new (window as any).XRWebGLLayer(session, renderer.context) });
+      
+    } catch (e) {
+      console.error("AR Start Error", e);
+      setArStatus('error');
+      setErrorMsg("Kon AR sessie niet starten: " + e.message);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-6" ref={containerRef}>
+      
+      {/* BACKGROUND EFFECTS */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-orange-900/20 to-transparent pointer-events-none"></div>
+
+      <div className="relative z-10 max-w-md w-full bg-zinc-900 border border-white/10 p-8 rounded-sm text-center shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+            <X className="w-6 h-6" />
+        </button>
+
+        <div className="mb-6 flex justify-center">
+            <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/30 animate-pulse">
+                <Smartphone className="w-10 h-10 text-orange-500" />
+            </div>
+        </div>
+
+        <h3 className="text-2xl font-black text-white mb-2 tracking-tighter">TRUE AR STUDIO</h3>
+        
+        {arStatus === 'init' && (
+            <>
+                <p className="text-gray-400 mb-8 font-medium">
+                    Plaats <strong>{product.title}</strong> direct op je muur. 
+                    <br/><br/>
+                    <span className="text-xs font-mono text-gray-500">Vereist: Android (Chrome) of een WebXR compatibele browser.</span>
+                </p>
+                <button 
+                    onClick={startAR}
+                    className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                    Start AR Sessie <ArrowRight className="w-4 h-4" />
+                </button>
+            </>
+        )}
+
+        {arStatus === 'scanning' && (
+            <div className="text-center py-8">
+                <Loader2 className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-4" />
+                <p className="text-white font-bold">Scanning...</p>
+                <p className="text-xs text-gray-500 mt-2">Kijk rond in de kamer. Tik op het scherm als je de cirkel ziet.</p>
+            </div>
+        )}
+
+        {arStatus === 'placed' && (
+            <div className="text-center py-8">
+                <Check className="w-8 h-8 text-green-500 mx-auto mb-4" />
+                <p className="text-white font-bold">Artwork Geplaatst!</p>
+                <p className="text-xs text-gray-500 mt-2">Loop rond om het van dichtbij te bekijken.</p>
+                <button onClick={() => setArStatus('scanning')} className="mt-4 text-xs text-orange-500 underline flex items-center justify-center gap-1">
+                    <RotateCcw className="w-3 h-3" /> Verplaatsen
+                </button>
+            </div>
+        )}
+
+        {arStatus === 'error' && (
+            <div className="text-center">
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-sm mb-6">
+                    <p className="text-red-500 text-sm font-mono">{errorMsg}</p>
+                </div>
+                <button 
+                    onClick={onClose}
+                    className="w-full border border-white/20 text-white py-3 font-bold uppercase hover:bg-white hover:text-black transition-colors"
+                >
+                    Sluiten
+                </button>
+            </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // --- SUB-COMPONENT: PRODUCT CARD ---
-const ProductCard = ({ product, onClick, onAddToCart }) => {
+const ProductCard = ({ product, onClick, onAddToCart }: any) => {
   const [isActive, setIsActive] = useState(false);
   const [hoveredSize, setHoveredSize] = useState(null);
   const [timer, setTimer] = useState(null);
@@ -156,6 +369,7 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         )}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         
+        {/* Hover Overlay - Only shows on Image Hover */}
         <div 
           className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
         >
@@ -168,7 +382,7 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white transition-colors group-hover:text-orange-500">{product.title}</h3>
           <div className="flex items-center gap-2 mt-2">
-            {sizes.slice(0, 3).map((size) => (
+            {sizes.slice(0, 3).map(size => (
               <button
                 key={size}
                 onClick={(e) => handleSizeClick(e, size)}
@@ -210,6 +424,9 @@ const App = () => {
   const [selectedSize, setSelectedSize] = useState('A2');
   const [productVariations, setProductVariations] = useState([]); 
   const [loadingVariations, setLoadingVariations] = useState(false);
+  
+  // --- AR STATE ---
+  const [showAR, setShowAR] = useState(false);
 
   // Share State
   const [copiedId, setCopiedId] = useState(null);
@@ -612,7 +829,7 @@ const App = () => {
         }
     } catch (err) {
         console.error("Upload error:", err);
-        alert("Kon geen verbinding maken met de server.");
+        alert("Kon geen verbinding maken met the server.");
     } finally {
         setIsUploading(false);
     }
@@ -669,6 +886,7 @@ const App = () => {
         setCommissionOpen(false);
         setContactOpen(false);
         setCartOpen(false);
+        setShowAR(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -696,6 +914,11 @@ const App = () => {
   return (
     <div className="bg-black min-h-screen text-white font-sans selection:bg-orange-500 selection:text-black overflow-x-hidden relative">
       
+      {/* AR SCANNER OVERLAY */}
+      {showAR && selectedProduct && (
+        <ARScanner product={selectedProduct} onClose={() => setShowAR(false)} />
+      )}
+
       {/* Background stays dark for main app, but we will override for checkout/thankyou */}
       <div className={`fixed inset-0 z-0 pointer-events-none ${view === 'checkout' || view === 'thankyou' ? 'hidden' : 'block'}`}>
           <div 
@@ -1739,6 +1962,17 @@ const App = () => {
              <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
              <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden shrink-0">
                  {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
+                 
+                 {/* AR TRIGGER BUTTON OVERLAY */}
+                 <div className="absolute top-4 left-4 z-20">
+                    <button 
+                        onClick={() => setShowAR(true)}
+                        className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
+                    >
+                        <Smartphone className="w-4 h-4 text-orange-500" />
+                        View in AR
+                    </button>
+                 </div>
              </div>
              <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
                  {/* ... Details & Add to Cart ... */}
@@ -1752,7 +1986,7 @@ const App = () => {
                               <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
                               <div className="flex gap-2 justify-end flex-wrap">
                                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                                    selectedProduct.sizes.map(size => (
+                                    selectedProduct.sizes.map((size) => (
                                        <button
                                           key={size}
                                           onClick={() => setSelectedSize(size)}
