@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import * as THREE from 'three';
+import * as THREE from 'https://esm.sh/three@0.160.0';
 import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home, Camera, Smartphone, RotateCcw } from 'lucide-react';
 
 /**
