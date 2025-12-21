@@ -69,13 +69,14 @@ const ARScanner = ({ product, onClose }) => {
 
   useEffect(() => {
     // Check for WebXR support
-    if (!(navigator as any).xr) {
+    // We use bracket notation or direct access assuming browser support checking
+    if (!navigator.xr) {
       setArStatus('error');
       setErrorMsg("WebXR wordt niet ondersteund in deze browser. Gebruik Chrome op Android of een WebXR viewer.");
       return;
     }
 
-    (navigator as any).xr.isSessionSupported('immersive-ar').then((supported) => {
+    navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
       if (!supported) {
         setArStatus('error');
         setErrorMsg("AR wordt niet ondersteund op dit apparaat/browser.");
@@ -87,16 +88,13 @@ const ARScanner = ({ product, onClose }) => {
     if (!containerRef.current) return;
 
     try {
-      const session = await (navigator as any).xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] });
+      const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] });
       setArStatus('scanning');
 
       // THREE JS SETUP
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.xr.enabled = true;
-      // Append renderer directly to body to go fullscreen immersive
-      // Note: In standard WebXR, the canvas usually replaces the view or is handled by the browser. 
-      // We attach it to a container but when session starts, it takes over.
       
       // Scene
       const scene = new THREE.Scene();
@@ -112,7 +110,7 @@ const ARScanner = ({ product, onClose }) => {
       // Reticle (The cursor)
       const reticle = new THREE.Mesh(
         new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
-        new THREE.MeshBasicMaterial({ color: 0xffffff }) // Orange ring
+        new THREE.MeshBasicMaterial({ color: 0xffffff }) // White ring
       );
       reticle.matrixAutoUpdate = false;
       reticle.visible = false;
@@ -120,7 +118,6 @@ const ARScanner = ({ product, onClose }) => {
 
       // Product Mesh (The Poster)
       const textureLoader = new THREE.TextureLoader();
-      // Enable CORS for external images
       textureLoader.setCrossOrigin('anonymous');
       
       const imageUrl = product.color.includes('http') ? product.color : 'https://placehold.co/600x800/orange/white?text=No+Image';
@@ -178,12 +175,7 @@ const ARScanner = ({ product, onClose }) => {
       const onSelect = () => {
         if (reticle.visible) {
           posterMesh.position.setFromMatrixPosition(reticle.matrix);
-          // Make poster look at camera initially, but standing upright? 
-          // For simple wall placement, aligning with reticle (which aligns with surface) is usually best.
           posterMesh.quaternion.setFromRotationMatrix(reticle.matrix);
-          // If it's a floor (horizontal), maybe we want to stand it up?
-          // For now, let's just place it flat on the surface detected (wall or floor).
-          
           posterMesh.visible = true;
           setArStatus('placed');
         }
@@ -192,8 +184,8 @@ const ARScanner = ({ product, onClose }) => {
       session.addEventListener('select', onSelect);
       renderer.setAnimationLoop(render);
       
-      // Start session
-      await session.updateRenderState({ baseLayer: new (window as any).XRWebGLLayer(session, renderer.context) });
+      // Start session - using window.XRWebGLLayer to avoid TS checks and match WebXR spec in JS
+      await session.updateRenderState({ baseLayer: new XRWebGLLayer(session, renderer.getContext()) });
       
     } catch (e) {
       console.error("AR Start Error", e);
@@ -276,7 +268,7 @@ const ARScanner = ({ product, onClose }) => {
 };
 
 // --- SUB-COMPONENT: PRODUCT CARD ---
-const ProductCard = ({ product, onClick, onAddToCart }: any) => {
+const ProductCard = ({ product, onClick, onAddToCart }) => {
   const [isActive, setIsActive] = useState(false);
   const [hoveredSize, setHoveredSize] = useState(null);
   const [timer, setTimer] = useState(null);
@@ -702,7 +694,7 @@ const App = () => {
         setIsLoading(false);
       } catch (err) {
         console.error("Oeps, connectie mislukt:", err);
-        setError("Kan geen verbinding maken met de shop. Controleer of je 'WP CORS' plugin aanstaat in WordPress.");
+        setError("Kan geen verbinding maken met the shop. Controleer of je 'WP CORS' plugin aanstaat in WordPress.");
         setIsLoading(false);
       }
     };
@@ -2077,21 +2069,6 @@ const App = () => {
           <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('about'); }}>Over</button>
         </div>
       )}
-
-      <style>{`
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .animate-marquee { animation: marquee 20s linear infinite; }
-        .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        .perspective-1000 { perspective: 1000px; }
-        .ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes scan { 0% { top: 0; opacity: 0; } 20% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-        
-        @keyframes float {
-          0% { transform: translate(0, 0); }
-          50% { transform: translate(15px, -20px); }
-          100% { transform: translate(-10px, 15px); }
-        }
-      `}</style>
     </div>
   );
 };
