@@ -73,6 +73,7 @@ const ARScanner = ({ product, onClose }) => {
   const [errorMsg, setErrorMsg] = useState('');
   
   // Fallback AR States (iOS)
+  const [cameraStream, setCameraStream] = useState(null);
   const [posterPos, setPosterPos] = useState({ x: 0, y: 0 }); // Relative to center
   const [posterScale, setPosterScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
@@ -205,16 +206,32 @@ const ARScanner = ({ product, onClose }) => {
           const stream = await navigator.mediaDevices.getUserMedia({ 
               video: { facingMode: 'environment' } 
           });
-          if (videoRef.current) {
-              videoRef.current.srcObject = stream;
-          }
-          setArStatus('active'); // active means camera is on
+          setCameraStream(stream);
+          setArStatus('active');
       } catch (err) {
           console.error("Camera access denied", err);
           setErrorMsg("Camera toegang vereist. Controleer je browser instellingen.");
           setArStatus('error');
       }
   };
+
+  // Bind stream to video element once it renders
+  useEffect(() => {
+    if (arStatus === 'active' && videoRef.current && cameraStream) {
+        videoRef.current.srcObject = cameraStream;
+        // iOS often needs explicit play call even with autoPlay prop
+        videoRef.current.play().catch(e => console.log("Autoplay prevented:", e));
+    }
+  }, [arStatus, cameraStream]);
+
+  // Cleanup stream on close
+  useEffect(() => {
+      return () => {
+          if (cameraStream) {
+              cameraStream.getTracks().forEach(track => track.stop());
+          }
+      };
+  }, [cameraStream]);
 
   const handleTouchStart = (e) => {
       setIsDragging(true);
@@ -233,15 +250,6 @@ const ARScanner = ({ product, onClose }) => {
   };
 
   const handleTouchEnd = () => setIsDragging(false);
-
-  // Cleanup stream on close
-  useEffect(() => {
-      return () => {
-          if (videoRef.current && videoRef.current.srcObject) {
-              videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-          }
-      };
-  }, []);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center" ref={containerRef}>
