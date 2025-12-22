@@ -7,6 +7,7 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
  * Gekoppeld aan: https://www.aipostershop.nl/
  * STATUS: REAL PRICES & TRUE AR (WebXR)
  * - True AR with Wall/Floor detection via Three.js WebXR
+ * - Fallback Camera AR for iOS/Non-WebXR devices
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -61,31 +62,48 @@ const Confetti = () => {
   );
 };
 
-// --- COMPONENT: TRUE AR SCANNER (WebXR) ---
+// --- COMPONENT: AR SCANNER (Hybrid WebXR + Camera Fallback) ---
 const ARScanner = ({ product, onClose }) => {
   const containerRef = useRef(null);
-  const [arStatus, setArStatus] = useState('init'); // init, scanning, placed, error
+  const videoRef = useRef(null);
+  
+  // States
+  const [mode, setMode] = useState('detecting'); // detecting, webxr, fallback
+  const [arStatus, setArStatus] = useState('init'); // init, scanning, placed, error, active (fallback)
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // Fallback AR States (iOS)
+  const [posterPos, setPosterPos] = useState({ x: 0, y: 0 }); // Relative to center
+  const [posterScale, setPosterScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Check for WebXR support using standard JS checks
-    if (!navigator.xr) {
-      setArStatus('error');
-      setErrorMsg("WebXR wordt niet ondersteund in deze browser. Gebruik Chrome op Android of een WebXR viewer.");
-      return;
+    // Detect WebXR support
+    if (navigator.xr) {
+      navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+        if (supported) {
+          setMode('webxr');
+        } else {
+          setMode('fallback');
+        }
+      }).catch(() => setMode('fallback'));
+    } else {
+      setMode('fallback');
     }
-
-    navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
-      if (!supported) {
-        setArStatus('error');
-        setErrorMsg("AR wordt niet ondersteund op dit apparaat/browser.");
-      }
-    });
   }, []);
 
   const startAR = async () => {
-    if (!containerRef.current) return;
+    if (mode === 'webxr') {
+        startWebXR();
+    } else {
+        startFallbackCamera();
+    }
+  };
 
+  // --- MODE 1: NATIVE WEBXR (Android) ---
+  const startWebXR = async () => {
+    if (!containerRef.current) return;
     try {
       const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test', 'dom-overlay'], optionalFeatures: ['dom-overlay'], domOverlay: { root: containerRef.current } });
       setArStatus('scanning');
@@ -96,18 +114,13 @@ const ARScanner = ({ product, onClose }) => {
       renderer.xr.enabled = true;
       renderer.xr.setReferenceSpaceType('local');
       
-      // Scene
       const scene = new THREE.Scene();
-
-      // Light
       const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
       light.position.set(0.5, 1, 0.25);
       scene.add(light);
 
-      // Camera
       const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-      // Reticle (The cursor)
       const reticle = new THREE.Mesh(
         new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0xffffff })
@@ -116,28 +129,22 @@ const ARScanner = ({ product, onClose }) => {
       reticle.visible = false;
       scene.add(reticle);
 
-      // Product Mesh (The Poster)
       const textureLoader = new THREE.TextureLoader();
       textureLoader.setCrossOrigin('anonymous');
-      
       const imageUrl = product.color.includes('http') ? product.color : 'https://placehold.co/600x800/orange/white?text=No+Image';
       const texture = textureLoader.load(imageUrl);
       
-      // Calculate aspect ratio (default A2 roughly 1:1.414)
       const posterWidth = 0.42; 
       const posterHeight = 0.594;
-      
       const geometry = new THREE.PlaneGeometry(posterWidth, posterHeight);
       const material = new THREE.MeshPhongMaterial({ map: texture, side: THREE.DoubleSide });
       const posterMesh = new THREE.Mesh(geometry, material);
       posterMesh.visible = false;
       scene.add(posterMesh);
 
-      // Hit Test Source
       let hitTestSource = null;
       let hitTestSourceRequested = false;
 
-      // Render Loop
       const render = (timestamp, frame) => {
         if (frame) {
           const referenceSpace = renderer.xr.getReferenceSpace();
@@ -171,7 +178,6 @@ const ARScanner = ({ product, onClose }) => {
         renderer.render(scene, camera);
       };
 
-      // Handle Tap
       const onSelect = () => {
         if (reticle.visible) {
           posterMesh.position.setFromMatrixPosition(reticle.matrix);
@@ -182,87 +188,200 @@ const ARScanner = ({ product, onClose }) => {
       };
 
       session.addEventListener('select', onSelect);
-      
-      // Use Three.js session manager instead of manual layer creation
       await renderer.xr.setSession(session);
       renderer.setAnimationLoop(render);
       
     } catch (e) {
       console.error("AR Start Error", e);
-      setArStatus('error');
-      setErrorMsg("Kon AR sessie niet starten: " + e.message);
+      // If WebXR fails unpredictably, fallback to camera
+      setMode('fallback');
+      startFallbackCamera();
     }
   };
 
+  // --- MODE 2: CAMERA FALLBACK (iOS) ---
+  const startFallbackCamera = async () => {
+      try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+              video: { facingMode: 'environment' } 
+          });
+          if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+          }
+          setArStatus('active'); // active means camera is on
+      } catch (err) {
+          console.error("Camera access denied", err);
+          setErrorMsg("Camera toegang vereist. Controleer je browser instellingen.");
+          setArStatus('error');
+      }
+  };
+
+  const handleTouchStart = (e) => {
+      setIsDragging(true);
+      const touch = e.touches[0];
+      // Store offset from current pos
+      dragStart.current = { x: touch.clientX - posterPos.x, y: touch.clientY - posterPos.y };
+  };
+
+  const handleTouchMove = (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      setPosterPos({ 
+          x: touch.clientX - dragStart.current.x, 
+          y: touch.clientY - dragStart.current.y 
+      });
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
+  // Cleanup stream on close
+  useEffect(() => {
+      return () => {
+          if (videoRef.current && videoRef.current.srcObject) {
+              videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+          }
+      };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-6" ref={containerRef}>
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center" ref={containerRef}>
       
-      {/* BACKGROUND EFFECTS */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-orange-900/20 to-transparent pointer-events-none"></div>
+      {/* BACKGROUND FOR FALLBACK */}
+      {arStatus === 'active' && mode === 'fallback' ? (
+          <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+      ) : (
+        <>
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+            <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-orange-900/20 to-transparent pointer-events-none"></div>
+        </>
+      )}
 
-      <div className="relative z-10 max-w-md w-full bg-zinc-900 border border-white/10 p-8 rounded-sm text-center shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
-        </button>
+      {/* OVERLAY CONTENT */}
+      {arStatus === 'active' && mode === 'fallback' ? (
+          // --- FALLBACK INTERFACE ---
+          <div className="relative z-10 w-full h-full flex flex-col justify-between p-4 animate-in fade-in duration-500">
+              <button 
+                onClick={onClose} 
+                className="self-end bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/20"
+              >
+                  <X className="w-6 h-6" />
+              </button>
 
-        <div className="mb-6 flex justify-center">
-            <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/30 animate-pulse">
-                <Smartphone className="w-10 h-10 text-orange-500" />
-            </div>
-        </div>
+              {/* DRAGGABLE POSTER */}
+              <div 
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              >
+                  <div 
+                    style={{ 
+                        transform: `translate(${posterPos.x}px, ${posterPos.y}px) scale(${posterScale})`,
+                        width: '60vw', // Initial relative size
+                        touchAction: 'none'
+                    }}
+                    className="pointer-events-auto cursor-move origin-center"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                      {product.color.includes('http') ? (
+                          <img src={product.color} className="w-full h-auto shadow-2xl border-4 border-white" alt="AR Preview" />
+                      ) : (
+                          <div className={`w-full aspect-[2/3] bg-gradient-to-br ${product.color} shadow-2xl border-4 border-white`}></div>
+                      )}
+                  </div>
+              </div>
 
-        <h3 className="text-2xl font-black text-white mb-2 tracking-tighter">TRUE AR STUDIO</h3>
-        
-        {arStatus === 'init' && (
-            <>
-                <p className="text-gray-400 mb-8 font-medium">
-                    Plaats <strong>{product.title}</strong> direct op je muur. 
-                    <br/><br/>
-                    <span className="text-xs font-mono text-gray-500">Vereist: Android (Chrome) of een WebXR compatibele browser.</span>
-                </p>
-                <button 
-                    onClick={startAR}
-                    className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                    Start AR Sessie <ArrowRight className="w-4 h-4" />
-                </button>
-            </>
-        )}
+              {/* CONTROLS */}
+              <div className="w-full bg-black/60 backdrop-blur-md p-6 rounded-2xl border border-white/10 mb-4">
+                  <p className="text-center text-white text-xs font-bold mb-4 uppercase tracking-widest">Sleep om te verplaatsen • Pas grootte aan</p>
+                  <div className="flex items-center gap-4">
+                      <button onClick={() => setPosterScale(s => Math.max(0.2, s - 0.1))} className="p-3 bg-white/10 rounded-full text-white"><Minus className="w-4 h-4" /></button>
+                      <input 
+                        type="range" 
+                        min="0.2" 
+                        max="2" 
+                        step="0.05" 
+                        value={posterScale} 
+                        onChange={(e) => setPosterScale(parseFloat(e.target.value))}
+                        className="flex-1 accent-orange-500 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <button onClick={() => setPosterScale(s => Math.min(3, s + 0.1))} className="p-3 bg-white/10 rounded-full text-white"><Plus className="w-4 h-4" /></button>
+                  </div>
+              </div>
+          </div>
+      ) : (
+          // --- INIT / LOADING / ERROR SCREEN ---
+          <div className="relative z-10 max-w-md w-full bg-zinc-900 border border-white/10 p-8 rounded-sm text-center shadow-2xl m-4">
+            <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+                <X className="w-6 h-6" />
+            </button>
 
-        {arStatus === 'scanning' && (
-            <div className="text-center py-8">
-                <Loader2 className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-4" />
-                <p className="text-white font-bold">Scanning...</p>
-                <p className="text-xs text-gray-500 mt-2">Kijk rond in de kamer. Tik op het scherm als je de cirkel ziet.</p>
-            </div>
-        )}
-
-        {arStatus === 'placed' && (
-            <div className="text-center py-8">
-                <Check className="w-8 h-8 text-green-500 mx-auto mb-4" />
-                <p className="text-white font-bold">Artwork Geplaatst!</p>
-                <p className="text-xs text-gray-500 mt-2">Loop rond om het van dichtbij te bekijken.</p>
-                <button onClick={() => setArStatus('scanning')} className="mt-4 text-xs text-orange-500 underline flex items-center justify-center gap-1">
-                    <RotateCcw className="w-3 h-3" /> Verplaatsen
-                </button>
-            </div>
-        )}
-
-        {arStatus === 'error' && (
-            <div className="text-center">
-                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-sm mb-6">
-                    <p className="text-red-500 text-sm font-mono">{errorMsg}</p>
+            <div className="mb-6 flex justify-center">
+                <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/30 animate-pulse">
+                    <Smartphone className="w-10 h-10 text-orange-500" />
                 </div>
-                <button 
-                    onClick={onClose}
-                    className="w-full border border-white/20 text-white py-3 font-bold uppercase hover:bg-white hover:text-black transition-colors"
-                >
-                    Sluiten
-                </button>
             </div>
-        )}
-      </div>
+
+            <h3 className="text-2xl font-black text-white mb-2 tracking-tighter">TRUE AR STUDIO</h3>
+            
+            {arStatus === 'init' && (
+                <>
+                    <p className="text-gray-400 mb-8 font-medium">
+                        Bekijk <strong>{product.title}</strong> in jouw kamer.
+                        <br/><br/>
+                        {mode === 'webxr' ? (
+                            <span className="text-xs font-mono text-green-500">Android WebXR Gedetecteerd</span>
+                        ) : (
+                            <span className="text-xs font-mono text-orange-500">iOS/Camera Modus</span>
+                        )}
+                    </p>
+                    <button 
+                        onClick={startAR}
+                        className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                        Start Camera <ArrowRight className="w-4 h-4" />
+                    </button>
+                </>
+            )}
+
+            {arStatus === 'scanning' && mode === 'webxr' && (
+                <div className="text-center py-8">
+                    <Loader2 className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-4" />
+                    <p className="text-white font-bold">Scanning...</p>
+                    <p className="text-xs text-gray-500 mt-2">Kijk rond in de kamer. Tik als je de cirkel ziet.</p>
+                </div>
+            )}
+
+            {arStatus === 'placed' && (
+                <div className="text-center py-8">
+                    <Check className="w-8 h-8 text-green-500 mx-auto mb-4" />
+                    <p className="text-white font-bold">Artwork Geplaatst!</p>
+                    <button onClick={() => setArStatus('scanning')} className="mt-4 text-xs text-orange-500 underline flex items-center justify-center gap-1">
+                        <RotateCcw className="w-3 h-3" /> Verplaatsen
+                    </button>
+                </div>
+            )}
+
+            {arStatus === 'error' && (
+                <div className="text-center">
+                    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-sm mb-6">
+                        <p className="text-red-500 text-sm font-mono">{errorMsg}</p>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="w-full border border-white/20 text-white py-3 font-bold uppercase hover:bg-white hover:text-black transition-colors"
+                    >
+                        Sluiten
+                    </button>
+                </div>
+            )}
+          </div>
+      )}
     </div>
   );
 };
