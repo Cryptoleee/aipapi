@@ -1829,8 +1829,8 @@ const App = () => {
                            <div className={`w-full aspect-[3/4] bg-gradient-to-br ${selectedProduct.color} shadow-2xl`}></div>
                         )}
                    </div>
-                   {/* Gradient Overlay for Readability */}
-                   <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black pointer-events-none"></div>
+                   {/* Gradient Overlay for Readability (Bottom Only) */}
+                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black pointer-events-none"></div>
                </div>
 
                {/* 2. Top Controls Layer */}
