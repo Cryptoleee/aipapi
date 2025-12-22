@@ -8,6 +8,7 @@ import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, 
  * STATUS: REAL PRICES & TRUE AR (WebXR)
  * - True AR with Wall/Floor detection via Three.js WebXR
  * - Fallback Camera AR for iOS/Non-WebXR devices
+ * - Mobile Optimized Pop-up
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -1192,7 +1193,7 @@ const App = () => {
                       className="bg-white text-black px-8 py-4 font-bold text-sm uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center gap-3 group"
                     >
                       Bekijk Galerij
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1800,276 +1801,6 @@ const App = () => {
                 </div>
             </div>
         )}
-        
-        {view === 'checkout' && (
-            <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black">
-               <div className="bg-orange-600/10 border-y border-orange-500/20 text-orange-500 text-center py-3 px-6 text-xs font-mono uppercase tracking-widest mb-12 backdrop-blur-md">
-                 Heb je een waardebon? Klik hier om je code in te vullen
-               </div>
-
-               <div className="container mx-auto px-6 max-w-6xl">
-                 <div className="grid md:grid-cols-2 gap-16">
-                   
-                   <div>
-                     <h2 className="text-3xl font-black tracking-tighter mb-8 flex items-center gap-3 text-white">
-                        <Terminal className="w-6 h-6 text-orange-500" />
-                        FACTUURGEGEVENS
-                     </h2>
-                     <form className="space-y-6 font-mono text-sm">
-                        <div className="grid grid-cols-2 gap-6">
-                           <div className="space-y-2">
-                              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Voornaam *</label>
-                              <input 
-                                  type="text" 
-                                  name="firstName" 
-                                  value={formData.firstName} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="Jouw naam" 
-                              />
-                           </div>
-                           <div className="space-y-2">
-                              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Achternaam *</label>
-                              <input 
-                                  type="text" 
-                                  name="lastName" 
-                                  value={formData.lastName} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="Jouw achternaam" 
-                              />
-                           </div>
-                        </div>
-
-                        <div className="space-y-2">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bedrijfsnaam (optioneel)</label>
-                           <input 
-                              type="text" 
-                              name="company" 
-                              value={formData.company} 
-                              onChange={handleBillingChange} 
-                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                              placeholder="" 
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Land *</label>
-                           <div className="relative">
-                              <select 
-                                  value={billingCountry}
-                                  onChange={(e) => setBillingCountry(e.target.value)}
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white appearance-none cursor-pointer"
-                              >
-                                  <option value="NL" className="bg-black text-white">Nederland</option>
-                                  <option value="BE" className="bg-black text-white">België</option>
-                              </select>
-                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                           </div>
-                        </div>
-
-                        <div className="space-y-2">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Straat *</label>
-                           <input 
-                              type="text" 
-                              name="address" 
-                              value={formData.address} 
-                              onChange={handleBillingChange} 
-                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                              placeholder="Straatnaam" 
-                          />
-                        </div>
-                        <div className="space-y-2">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Huisnummer *</label>
-                           <input 
-                              type="text" 
-                              name="houseNumber" 
-                              value={formData.houseNumber} 
-                              onChange={handleBillingChange} 
-                              className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                              placeholder="Nr." 
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Postcode *</label>
-                             <input 
-                                  type="text" 
-                                  name="postcode" 
-                                  value={formData.postcode} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="1234 AB" 
-                              />
-                          </div>
-                          <div className="space-y-2">
-                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Plaats *</label>
-                             <input 
-                                  type="text" 
-                                  name="city" 
-                                  value={formData.city} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="Amsterdam" 
-                              />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Telefoon *</label>
-                               <input 
-                                  type="tel" 
-                                  name="phone" 
-                                  value={formData.phone} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="06 12345678" 
-                              />
-                            </div>
-                            <div className="space-y-2">
-                               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">E-mailadres *</label>
-                               <input 
-                                  type="email" 
-                                  name="email" 
-                                  value={formData.email} 
-                                  onChange={handleBillingChange} 
-                                  className="w-full bg-white/5 border border-white/10 p-3 rounded-sm focus:border-orange-500 focus:outline-none transition-colors text-white placeholder-gray-600" 
-                                  placeholder="jouw@email.com" 
-                              />
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-white/10">
-                           <label className="flex items-center gap-3 cursor-pointer group mb-6">
-                              <div className="relative">
-                                <input 
-                                  type="checkbox" 
-                                  className="peer sr-only" 
-                                  checked={shipToDifferentAddress}
-                                  onChange={(e) => setShipToDifferentAddress(e.target.checked)}
-                                />
-                                <div className="w-5 h-5 border border-white/30 rounded-sm peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-colors group-hover:border-orange-500/50"></div>
-                                <Check className="absolute top-0.5 left-0.5 w-4 h-4 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
-                              </div>
-                              <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Verzenden naar een ander adres?</span>
-                           </label>
-                           
-                           {/* Shipping Fields Hidden Logic ... (Same as above) */}
-                        </div>
-                     </form>
-                   </div>
-
-                   <div>
-                     <h2 className="text-3xl font-black tracking-tighter mb-8 flex items-center gap-3 text-white">
-                        <Package className="w-6 h-6 text-orange-500" />
-                        JE BESTELLING
-                     </h2>
-                     
-                     <div className="bg-white/5 border border-white/10 p-8 rounded-sm space-y-6 mb-8 backdrop-blur-sm relative overflow-hidden">
-                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
-                        {cartItems.map((item) => (
-                          <div key={item.cartId} className="flex gap-4 relative z-10 text-white">
-                             <div className={`w-20 h-24 bg-gradient-to-br ${item.image} flex-shrink-0 relative overflow-hidden rounded-sm border border-white/10`}>
-                                {item.image.includes('http') ? ( <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover opacity-80" /> ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${item.image} opacity-80`}></div> )}
-                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-                             </div>
-                             <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h4 className="font-bold text-lg">{item.title}</h4>
-                                    <span className="font-bold font-mono">€{item.price}</span>
-                                </div>
-                                <div className="flex gap-2 text-xs text-gray-500 uppercase tracking-widest mt-1 font-mono">
-                                    <span>Limited Edition</span>
-                                    <span>•</span>
-                                    <span className="text-orange-500 font-bold">{item.size}</span>
-                                </div>
-                                <p className="text-xs text-gray-400 mt-2 font-mono">Aantal: {item.quantity}</p>
-                             </div>
-                          </div>
-                        ))}
-                        
-                        <div className="border-t border-white/10 pt-6 space-y-3 relative z-10 font-mono text-sm text-white">
-                           <div className="flex justify-between">
-                              <span className="text-gray-400 uppercase tracking-wider">Subtotaal</span>
-                              <span className="font-bold">€{cartTotal.toFixed(2)}</span>
-                           </div>
-                           <div className="flex justify-between">
-                              <span className="text-gray-400 uppercase tracking-wider">Verzending</span>
-                              <span className="text-green-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                 <Truck className="w-3 h-3" /> Gratis verzending
-                              </span>
-                           </div>
-                           <div className="flex justify-between border-t border-white/10 pt-4 mt-4">
-                              <span className="font-black text-lg uppercase tracking-wider">Totaal</span>
-                              <div className="text-right">
-                                 <span className="font-black text-2xl block text-orange-500">€{cartTotal.toFixed(2)}</span>
-                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest">(inclusief € {(cartTotal * 0.21).toFixed(2)} btw)</span>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* PAYMENT METHODS SECTION - ADDED */}
-                     <div className="mb-8 space-y-4">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Betaalmethode</h3>
-                        <div className="space-y-2">
-                            {paymentMethods.map((method) => (
-                                <label key={method.id} className={`flex items-center justify-between p-4 border rounded-sm cursor-pointer transition-all ${selectedPaymentMethod === method.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedPaymentMethod === method.id ? 'border-orange-500' : 'border-gray-500'}`}>
-                                            {selectedPaymentMethod === method.id && <div className="w-2 h-2 bg-orange-500 rounded-full"></div>}
-                                        </div>
-                                        <span className="font-bold text-sm text-white">{method.title}</span>
-                                    </div>
-                                    {method.id.includes('ideal') && <CreditCard className="w-4 h-4 text-gray-400" />} 
-                                </label>
-                            ))}
-                        </div>
-                     </div>
-
-                     <p className="text-xs text-gray-500 leading-relaxed mb-6 font-mono">
-                        Je persoonlijke gegevens zullen worden gebruikt om je bestelling te verwerken, om je beleving op deze site te optimaliseren en voor andere doeleinden zoals beschreven in onze privacybeleid.
-                     </p>
-
-                     <div className="mb-8 font-mono">
-                        <label className="flex items-start gap-3 cursor-pointer group">
-                           <div className="relative mt-0.5">
-                             <input 
-                               type="checkbox" 
-                               className="peer sr-only" 
-                               checked={termsAccepted}
-                               onChange={(e) => setTermsAccepted(e.target.checked)}
-                             />
-                             <div className="w-5 h-5 border border-white/30 rounded-sm peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-colors group-hover:border-orange-500/50"></div>
-                             <Check className="absolute top-0.5 left-0.5 w-4 h-4 text-black opacity-0 peer-checked:opacity-100 transition-opacity" />
-                           </div>
-                           <span className="text-sm text-gray-400 group-hover:text-white transition-colors">Ik heb de algemene voorwaarden van de site gelezen en ga hiermee akkoord *</span>
-                        </label>
-                     </div>
-
-                     <button 
-                       type="button" 
-                       onClick={handlePlaceOrder}
-                       disabled={isProcessing}
-                       className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
-                     >
-                       <div className={`absolute inset-0 bg-orange-500 transition-transform duration-300 z-0 ${isProcessing ? 'translate-y-0' : 'translate-y-full group-hover:translate-y-0'}`}></div>
-                       <span className="relative z-10 flex items-center gap-2">
-                          {isProcessing ? (
-                             <>Doorsturen naar betaling... <Loader2 className="w-5 h-5 animate-spin" /></>
-                          ) : (
-                             <>Ga naar betaling <Lock className="w-4 h-4 group-hover:text-white transition-colors" /></>
-                          )}
-                       </span>
-                     </button>
-
-                   </div>
-                 </div>
-               </div>
-            </div>
-        )}
         </div> 
 
        {/* ... Modals (SelectedProduct, Contact, Commission, Cart) ... */}
@@ -2077,123 +1808,170 @@ const App = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
           <div className="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
-             {/* ... Modal Content ... */}
-             <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
-             <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-[40vh] md:h-auto overflow-hidden shrink-0">
-                 {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
-                 
-                 {/* AR TRIGGER BUTTON OVERLAY */}
-                 <div className="absolute top-4 left-4 z-20">
-                    <button 
-                        onClick={() => setShowAR(true)}
-                        className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
-                    >
-                        <Smartphone className="w-4 h-4 text-orange-500" />
-                        View in AR
-                    </button>
-                 </div>
-             </div>
-             <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
-                 {/* ... Details & Add to Cart ... */}
-                 <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                  {/* ... UPDATED Size Selection ... */}
-                  <div className="mt-auto space-y-8">
-                     <div className="space-y-6">
-                        <div className="flex items-end justify-between border-b border-white/10 pb-4">
-                           <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
-                           <div className="text-right">
-                              <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
-                              <div className="flex gap-2 justify-end flex-wrap">
-                                 {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
+             
+             {/* --- MOBILE LAYOUT (< md) --- */}
+             <div className="md:hidden relative w-full h-full bg-black">
+               {/* 1. Full Screen Image Layer */}
+               <div className="absolute inset-0 z-0">
+                   {/* Blurred BG for Fill */}
+                   <div className="absolute inset-0 overflow-hidden">
+                       {selectedProduct.color.includes('http') ? (
+                           <img src={selectedProduct.color} className="w-full h-full object-cover opacity-40 blur-2xl scale-125" />
+                       ) : (
+                           <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color} opacity-40 blur-2xl`}></div>
+                       )}
+                   </div>
+                   {/* Sharp Main Image */}
+                   <div className="absolute inset-0 flex items-center justify-center p-8 pb-48">
+                        {selectedProduct.color.includes('http') ? (
+                           <img src={selectedProduct.color} className="max-w-full max-h-full object-contain shadow-2xl" />
+                        ) : (
+                           <div className={`w-full aspect-[3/4] bg-gradient-to-br ${selectedProduct.color} shadow-2xl`}></div>
+                        )}
+                   </div>
+                   {/* Gradient Overlay for Readability */}
+                   <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black pointer-events-none"></div>
+               </div>
+
+               {/* 2. Top Controls Layer */}
+               <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-20">
+                   <button onClick={() => setShowAR(true)} className="bg-black/40 backdrop-blur-md border border-white/10 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-white/10 transition-colors">
+                       <Smartphone className="w-3 h-3 text-orange-500" /> AR View
+                   </button>
+                   <button onClick={() => setSelectedProduct(null)} className="bg-black/40 backdrop-blur-md text-white p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-colors">
+                       <X className="w-5 h-5" />
+                   </button>
+               </div>
+
+               {/* 3. Bottom Controls Layer (Floating Overlay) */}
+               <div className="absolute bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black via-black/95 to-transparent pt-20">
+                   <div className="space-y-5">
+                        {/* Title & Price */}
+                        <div className="flex justify-between items-end">
+                            <div className="flex-1 pr-4">
+                                <h2 className="text-3xl font-black text-white uppercase leading-none drop-shadow-md">{selectedProduct.title}</h2>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-[10px] font-mono text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">LIMITED EDITION</span>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-2xl font-black text-white block drop-shadow-md">€{currentPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        {/* Size Selector */}
+                        <div>
+                            <label className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 block">Selecteer Formaat</label>
+                            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                                {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
                                     selectedProduct.sizes.map(size => (
                                        <button
                                           key={size}
                                           onClick={() => setSelectedSize(size)}
-                                          className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${
+                                          className={`flex-1 min-w-[80px] py-3 text-xs font-bold border rounded-sm transition-all ${
                                           selectedSize === size 
-                                             ? 'border-white bg-white text-black' 
-                                             : 'border-white/20 text-gray-400 hover:border-white hover:text-white'
+                                             ? 'bg-white text-black border-white' 
+                                             : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
                                           }`}
                                        >
                                           {size}
                                        </button>
                                     ))
-                                 ) : (
-                                    // ... fallback ...
+                                ) : (
                                     <>
-                                       <button onClick={() => setSelectedSize('A1')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A1' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A1</button>
-                                       <button onClick={() => setSelectedSize('A2')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A2' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A2</button>
+                                       <button onClick={() => setSelectedSize('A1')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all ${selectedSize === 'A1' ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/10'}`}>A1</button>
+                                       <button onClick={() => setSelectedSize('A2')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all ${selectedSize === 'A2' ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/10'}`}>A2</button>
                                     </>
-                                 )}
-                              </div>
-                           </div>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} 
+                                className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest flex items-center justify-center gap-2 text-sm rounded-sm hover:bg-orange-500 hover:text-white transition-all shadow-lg"
+                            >
+                                Toevoegen <ShoppingBag className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={() => handleShare(selectedProduct.id)}
+                                className="w-14 h-14 border border-white/20 bg-white/5 backdrop-blur-md flex items-center justify-center text-white rounded-sm hover:bg-white/20 transition-colors"
+                            >
+                                {copiedId === selectedProduct.id ? (<Check className="w-6 h-6 text-green-500" />) : (<Share2 className="w-6 h-6" />)}
+                            </button>
+                        </div>
+                   </div>
+               </div>
+             </div>
+
+             {/* --- DESKTOP LAYOUT (md+) --- */}
+             <div className="hidden md:contents">
+                 <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
+                 <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-auto overflow-hidden shrink-0">
+                     {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
+                     
+                     {/* AR TRIGGER BUTTON OVERLAY */}
+                     <div className="absolute top-4 left-4 z-20">
+                        <button 
+                            onClick={() => setShowAR(true)}
+                            className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
+                        >
+                            <Smartphone className="w-4 h-4 text-orange-500" />
+                            View in AR
+                        </button>
                      </div>
-                      <div className="flex gap-3">
-                        <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
-                        {/* ... Share ... */}
-                        <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
+                 </div>
+                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
+                     {/* ... Details & Add to Cart ... */}
+                     <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
+                      {/* ... UPDATED Size Selection ... */}
+                      <div className="mt-auto space-y-8">
+                         <div className="space-y-6">
+                            <div className="flex items-end justify-between border-b border-white/10 pb-4">
+                               <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
+                               <div className="text-right">
+                                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
+                                  <div className="flex gap-2 justify-end flex-wrap">
+                                     {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
+                                        selectedProduct.sizes.map(size => (
+                                           <button
+                                              key={size}
+                                              onClick={() => setSelectedSize(size)}
+                                              className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${
+                                              selectedSize === size 
+                                                 ? 'border-white bg-white text-black' 
+                                                 : 'border-white/20 text-gray-400 hover:border-white hover:text-white'
+                                              }`}
+                                           >
+                                              {size}
+                                           </button>
+                                        ))
+                                     ) : (
+                                        // ... fallback ...
+                                        <>
+                                           <button onClick={() => setSelectedSize('A1')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A1' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A1</button>
+                                           <button onClick={() => setSelectedSize('A2')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A2' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A2</button>
+                                        </>
+                                     )}
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                          <div className="flex gap-3">
+                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                            {/* ... Share ... */}
+                            <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
+                          </div>
+                          {/* ... Footer Info ... */}
+                          <div className="grid grid-cols-2 gap-4 pt-4">
+                              <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
+                              <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
+                          </div>
                       </div>
-                      {/* ... Footer Info ... */}
-                      <div className="grid grid-cols-2 gap-4 pt-4">
-                          <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
-                          <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
-                      </div>
-                  </div>
+                 </div>
              </div>
           </div>
-        </div>
-      )}
-
-      {/* ... Other Modals ... */}
-      {cartOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-end">
-          <div className="absolute inset-0 bg-transparent" onClick={() => setCartOpen(false)}></div>
-          <div className="relative w-full max-w-md h-full bg-black border-l border-white/10 shadow-2xl animate-in slide-in-from-right duration-500 flex flex-col">
-             <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/80 backdrop-blur-md z-10">
-               <div className="flex items-center gap-3"><ShoppingBag className="w-5 h-5" /><h2 className="font-bold text-lg tracking-wider text-white">JOUW WINKELWAGEN <span className="text-gray-500 text-sm ml-2">({cartCount})</span></h2></div>
-               <button onClick={() => setCartOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5 text-white" /></button>
-             </div>
-             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {cartItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500"><ShoppingBag className="w-12 h-12 mb-4 opacity-20" /><p>Je winkelwagen is leeg.</p></div>
-                ) : (
-                  cartItems.map(item => (
-                    <div key={item.cartId} className="flex gap-4 group text-white">
-                       <div className={`w-20 h-24 bg-gradient-to-br ${item.image} flex-shrink-0 relative overflow-hidden rounded-sm border border-white/10`}>
-                          {item.image.includes('http') ? ( <img src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover" /> ) : ( <div className={`absolute inset-0 bg-gradient-to-br ${item.image}`}></div> )}
-                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                       </div>
-                       <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                             <div className="flex justify-between items-start"><h3 className="font-bold text-lg">{item.title}</h3><span className="font-mono text-sm">€{item.price}</span></div>
-                             <div className="flex gap-2 text-xs text-gray-500 uppercase tracking-widest mt-1 font-mono"><span>Limited Edition</span><span>•</span><span className="text-orange-500 font-bold">{item.size}</span></div>
-                          </div>
-                          <div className="flex justify-between items-center">
-                             <div className="flex items-center gap-3 bg-white/5 rounded-full px-3 py-1 border border-white/10"><button className="hover:text-orange-500 disabled:opacity-30" onClick={() => updateQuantity(item.cartId, -1)} disabled={item.quantity <= 1}><Minus className="w-3 h-3" /></button><span className="text-xs font-mono w-4 text-center">{item.quantity}</span><button className="hover:text-orange-500" onClick={() => updateQuantity(item.cartId, 1)}><Plus className="w-3 h-3" /></button></div>
-                             <button className="text-gray-500 hover:text-red-500 transition-colors" onClick={() => removeFromCart(item.cartId)}><Trash2 className="w-4 h-4" /></button>
-                          </div>
-                       </div>
-                    </div>
-                  ))
-                )}
-             </div>
-             <div className="p-6 border-t border-white/10 bg-black/90 backdrop-blur-sm">
-                <div className="flex justify-between items-end mb-6 text-white"><span className="text-gray-500 text-sm uppercase tracking-widest">Subtotaal</span><span className="text-3xl font-bold">€{cartTotal.toFixed(2)}</span></div>
-                <p className="text-xs text-gray-500 mb-6 text-center">Verzendkosten & belastingen berekend bij afrekenen</p>
-                <button onClick={() => { setCartOpen(false); navigateTo('checkout'); }} className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2">Afrekenen <ArrowRight className="w-4 h-4" /></button>
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ... Mobile Menu ... */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-200">
-          <button className="absolute top-8 right-8" onClick={() => setMobileMenuOpen(false)}><X className="w-8 h-8 text-white" /></button>
-          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('collection'); }}>Collecties</button>
-          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('process'); }}>Proces</button>
-          <button className="text-4xl font-bold text-white/80 hover:text-orange-500 transition-colors" onClick={() => { setMobileMenuOpen(false); navigateTo('about'); }}>Over</button>
         </div>
       )}
     </div>
