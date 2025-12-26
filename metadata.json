@@ -1,0 +1,7 @@
+{
+  "name": "AiPapi - The AI Art Studio",
+  "description": "A futuristic headless frontend for an AI-generated poster shop, featuring a Gemini-powered Art Lab for custom prompt-to-print creation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

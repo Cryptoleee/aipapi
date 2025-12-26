@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Fix: Use named import for App as the module has no default export
-import { App } from './App';
+// Fix: Use named import for App with explicit extension to ensure resolution
+import { App } from './App.jsx';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
