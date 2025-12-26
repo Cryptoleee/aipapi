@@ -1937,7 +1937,7 @@ export const App = () => {
           <div className="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
              
              {/* --- MOBILE LAYOUT (< md) --- */}
-             <div className="md:hidden relative w-full h-[100dvh] bg-black">
+             <div className="md:hidden relative w-full h-full bg-black">
                {/* 1. Full Screen Image Layer */}
                <div className="absolute inset-0 z-0">
                    {/* Blurred BG for Fill */}
@@ -1971,7 +1971,7 @@ export const App = () => {
                </div>
 
                {/* 3. Bottom Controls Layer (Floating Overlay) */}
-               <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pt-24 pb-16 md:pb-6 bg-gradient-to-t from-black via-black/95 to-transparent">
+               <div className="absolute bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black via-black/95 to-transparent pt-20">
                    <div className="space-y-5">
                         {/* Title & Price */}
                         <div className="flex justify-between items-end">
