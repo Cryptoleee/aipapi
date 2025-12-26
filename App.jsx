@@ -571,6 +571,19 @@ export const App = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
+  // --- FIGURINE EXPLODED VIEW DATA ---
+  const figurineParts = [
+    { id: 'head', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Head.png', x: 50, y: 15, width: 25, depth: 0.08, z: 10, rotate: 0 },
+    { id: 'torso', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Torso.png', x: 50, y: 38, width: 35, depth: 0.04, z: 5, rotate: 0 },
+    { id: 'l_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftarm.png', x: 25, y: 38, width: 20, depth: 0.06, z: 6, rotate: -10 },
+    { id: 'r_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightarm.png', x: 75, y: 38, width: 20, depth: 0.06, z: 6, rotate: 10 },
+    { id: 'l_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/lefthand.png', x: 15, y: 55, width: 15, depth: 0.10, z: 8, rotate: -20 },
+    { id: 'r_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Righthand.png', x: 85, y: 55, width: 15, depth: 0.10, z: 8, rotate: 20 },
+    { id: 'pants', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Pants.png', x: 50, y: 65, width: 30, depth: 0.02, z: 4, rotate: 0 },
+    { id: 'l_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftshoe.png', x: 40, y: 85, width: 15, depth: 0.03, z: 4, rotate: -5 },
+    { id: 'r_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightshoe.png', x: 60, y: 85, width: 15, depth: 0.03, z: 4, rotate: 5 },
+  ];
+
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
     title: "HET MOOIE DECODEREN",
@@ -1701,87 +1714,6 @@ export const App = () => {
              </div>
           </div>
         )}
-
-        {view === 'checkout' && (
-            <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 container mx-auto px-6">
-                <button onClick={() => setView('home')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-                    <ArrowRight className="w-4 h-4 rotate-180" /> Back to Store
-                </button>
-                <div className="grid md:grid-cols-2 gap-12">
-                    <div>
-                        <h2 className="text-3xl font-black mb-8 uppercase text-white">Shipping Details</h2>
-                        <form onSubmit={handlePlaceOrder} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <input required placeholder="First Name" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, firstName: e.target.value})} />
-                                <input required placeholder="Last Name" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, lastName: e.target.value})} />
-                            </div>
-                            <input required type="email" placeholder="Email Address" className="w-full bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, email: e.target.value})} />
-                            <div className="grid grid-cols-3 gap-4">
-                                <input required placeholder="Street" className="col-span-2 bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, address: e.target.value})} />
-                                <input required placeholder="Nr." className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, houseNumber: e.target.value})} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input required placeholder="City" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, city: e.target.value})} />
-                                <input required placeholder="ZIP / Postcode" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, postcode: e.target.value})} />
-                            </div>
-                            
-                            <div className="pt-8 border-t border-white/10">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white"><CreditCard className="w-5 h-5 text-orange-500" /> Payment</h3>
-                                <div className="space-y-4">
-                                    {paymentMethods.map(method => (
-                                        <div key={method.id} onClick={() => setSelectedPaymentMethod(method.id)} className={`p-4 border rounded-sm cursor-pointer flex items-center justify-between transition-all ${selectedPaymentMethod === method.id ? 'bg-orange-500/10 border-orange-500' : 'bg-zinc-900 border-white/10 hover:bg-zinc-800'}`}>
-                                            <span className="font-bold">{method.title}</span>
-                                            {selectedPaymentMethod === method.id && <div className="w-4 h-4 bg-orange-500 rounded-full"></div>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-4">
-                                <input type="checkbox" id="terms" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="accent-orange-500 w-4 h-4" />
-                                <label htmlFor="terms" className="text-sm text-gray-400">I agree to the <a href="#" className="text-white underline">Terms & Conditions</a></label>
-                            </div>
-
-                            <button type="submit" disabled={isProcessing} className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 rounded-sm shadow-lg">
-                                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Pay €${cartTotal.toFixed(2)}`}
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div className="bg-zinc-900/50 p-8 h-fit border border-white/10 rounded-sm backdrop-blur-sm sticky top-24">
-                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><ShoppingBag className="w-5 h-5" /> Order Summary</h3>
-                        <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                            {cartItems.map((item, i) => (
-                                <div key={i} className="flex gap-4 items-center">
-                                    <div className="w-16 h-20 bg-gray-800 rounded-sm overflow-hidden flex-shrink-0">
-                                        <img src={item.image} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-1 text-sm">
-                                        <p className="font-bold text-white">{item.title}</p>
-                                        <p className="text-gray-500">{item.size} | x{item.quantity}</p>
-                                    </div>
-                                    <span className="font-mono text-white">€{(item.price * item.quantity).toFixed(2)}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="border-t border-white/10 pt-4 space-y-2">
-                            <div className="flex justify-between text-gray-400 text-sm">
-                                <span>Subtotal</span>
-                                <span>€{cartTotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-400 text-sm">
-                                <span>Shipping</span>
-                                <span className="text-green-500">FREE</span>
-                            </div>
-                            <div className="flex justify-between font-black text-xl text-white pt-4 border-t border-white/10 mt-4">
-                                <span>Total</span>
-                                <span>€{cartTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
         
         {view === 'thankyou' && (
             <div className="min-h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden p-6">
@@ -1870,65 +1802,6 @@ export const App = () => {
             </div>
         )}
         </div> 
-
-       {/* --- CART DRAWER (NOW OUTSIDE THE BLURRED AREA) --- */}
-       {cartOpen && (
-          <div className="fixed inset-0 z-[150] flex justify-end">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setCartOpen(false)}></div>
-              <div className="relative w-full max-w-md bg-zinc-900 border-l border-white/10 h-full p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
-                  <div className="flex justify-between items-center mb-8">
-                      <h2 className="text-2xl font-black uppercase tracking-tighter">Jouw Cart ({cartCount})</h2>
-                      <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-white"><X className="w-6 h-6"/></button>
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-                      {cartItems.length === 0 ? (
-                          <div className="text-center text-gray-500 mt-10">
-                              <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-20"/>
-                              <p>Nog niets gekozen.</p>
-                          </div>
-                      ) : (
-                          cartItems.map((item) => (
-                              <div key={item.cartId} className="flex gap-4 group">
-                                   <div className="w-20 h-24 bg-gray-800 overflow-hidden rounded-sm relative">
-                                       <img src={item.image} className="w-full h-full object-cover" />
-                                   </div>
-                                   <div className="flex-1">
-                                       <div className="flex justify-between items-start">
-                                           <h3 className="font-bold text-sm uppercase">{item.title}</h3>
-                                           <button onClick={() => removeFromCart(item.cartId)} className="text-gray-600 hover:text-red-500"><X className="w-4 h-4"/></button>
-                                       </div>
-                                       <p className="text-xs text-gray-400 font-mono mb-2">{item.size}</p>
-                                       <div className="flex justify-between items-end">
-                                           <p className="font-bold">€{item.price.toFixed(2)}</p>
-                                           <div className="flex items-center gap-3 bg-black/50 rounded-full px-2 py-1 border border-white/10">
-                                               <button onClick={() => updateQuantity(item.cartId, -1)} className="text-gray-400 hover:text-white"><Minus className="w-3 h-3"/></button>
-                                               <span className="text-xs font-mono w-3 text-center">{item.quantity}</span>
-                                               <button onClick={() => updateQuantity(item.cartId, 1)} className="text-gray-400 hover:text-white"><Plus className="w-3 h-3"/></button>
-                                           </div>
-                                       </div>
-                                   </div>
-                              </div>
-                          ))
-                      )}
-                  </div>
-                  
-                  <div className="border-t border-white/10 pt-6 mt-4">
-                      <div className="flex justify-between items-center mb-6 text-xl font-black uppercase">
-                          <span>Totaal</span>
-                          <span>€{cartTotal.toFixed(2)}</span>
-                      </div>
-                      <button 
-                          onClick={() => { setCartOpen(false); setView('checkout'); }}
-                          disabled={cartItems.length === 0}
-                          className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                          Checkout
-                      </button>
-                  </div>
-              </div>
-          </div>
-       )}
 
        {/* ... Modals (SelectedProduct, Contact, Commission, Cart) ... */}
        {selectedProduct && (
@@ -2049,17 +1922,11 @@ export const App = () => {
                         </button>
                      </div>
                  </div>
-                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-between bg-black border-l border-white/5 overflow-y-auto flex-1">
-                     <div className="space-y-4">
-                        <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-mono text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">LIMITED EDITION</span>
-                           {selectedVariation && <span className="text-[10px] font-mono text-gray-500">ID: {selectedVariation.id}</span>}
-                        </div>
-                     </div>
-
+                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
+                     {/* ... Details & Add to Cart ... */}
+                     <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
                       {/* ... UPDATED Size Selection ... */}
-                      <div className="mt-8 space-y-8">
+                      <div className="mt-auto space-y-8">
                          <div className="space-y-6">
                             <div className="flex items-end justify-between border-b border-white/10 pb-4">
                                <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
@@ -2092,12 +1959,12 @@ export const App = () => {
                             </div>
                          </div>
                           <div className="flex gap-3">
-                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)]">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
                             {/* ... Share ... */}
                             <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
                           </div>
                           {/* ... Footer Info ... */}
-                          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                          <div className="grid grid-cols-2 gap-4 pt-4">
                               <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
                               <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
                           </div>
