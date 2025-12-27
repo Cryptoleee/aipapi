@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { ShoppingBag, Menu, X, ArrowRight, Instagram, Twitter, Mail, MoveRight, Sparkles, Zap, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Fingerprint, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Sliders, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, CreditCard, Lock, ChevronDown, Wallet, Activity, Home, Camera, Smartphone, RotateCcw } from 'lucide-react';
+import { ShoppingBag, Menu, X, ArrowRight, MoveRight, Sparkles, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, Activity, Home, Smartphone, RotateCcw, ShieldAlert, EyeOff } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
- * Gekoppeld aan: https://www.aipostershop.nl/
- * STATUS: REAL PRICES & TRUE AR (WebXR)
+ * STATUS: RESTORED & ENHANCED
  * - True AR with Wall/Floor detection via Three.js WebXR
- * - Fallback Camera AR for iOS/Non-WebXR devices
- * - Mobile Optimized Pop-up
+ * - WooCommerce Integration
+ * - NSFW Filter Logic
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -571,18 +570,8 @@ export const App = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
-  // --- FIGURINE EXPLODED VIEW DATA ---
-  const figurineParts = [
-    { id: 'head', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Head.png', x: 50, y: 15, width: 25, depth: 0.08, z: 10, rotate: 0 },
-    { id: 'torso', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Torso.png', x: 50, y: 38, width: 35, depth: 0.04, z: 5, rotate: 0 },
-    { id: 'l_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftarm.png', x: 25, y: 38, width: 20, depth: 0.06, z: 6, rotate: -10 },
-    { id: 'r_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightarm.png', x: 75, y: 38, width: 20, depth: 0.06, z: 6, rotate: 10 },
-    { id: 'l_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/lefthand.png', x: 15, y: 55, width: 15, depth: 0.10, z: 8, rotate: -20 },
-    { id: 'r_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Righthand.png', x: 85, y: 55, width: 15, depth: 0.10, z: 8, rotate: 20 },
-    { id: 'pants', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Pants.png', x: 50, y: 65, width: 30, depth: 0.02, z: 4, rotate: 0 },
-    { id: 'l_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftshoe.png', x: 40, y: 85, width: 15, depth: 0.03, z: 4, rotate: -5 },
-    { id: 'r_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightshoe.png', x: 60, y: 85, width: 15, depth: 0.03, z: 4, rotate: 5 },
-  ];
+  // --- NSFW FILTER STATE ---
+  const [showNSFW, setShowNSFW] = useState(false);
 
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
@@ -733,7 +722,10 @@ export const App = () => {
   }, [selectedProduct, selectedVariation]);
 
   const heroItems = useMemo(() => {
-    if (products.length === 0) {
+    // Forcefully remove NSFW items from hero section for safety
+    const safeProducts = products.filter(p => !p.nsfw);
+    
+    if (safeProducts.length === 0) {
       return [
         { src: "https://iili.io/fqFKrgf.jpg", title: "LIQUID CHROME", gen: "GEN 01", seed: "839210" },
         { src: "https://iili.io/fqFK6J4.jpg", title: "NEON DRIFT", gen: "GEN 02", seed: "102938" },
@@ -741,7 +733,7 @@ export const App = () => {
         { src: "https://iili.io/fKNxzKP.png", title: "SYNTH WAVE", gen: "GEN 04", seed: "991823" }
       ];
     }
-    return [...products]
+    return [...safeProducts]
       .sort(() => 0.5 - Math.random())
       .slice(0, 5)
       .map(p => ({
@@ -805,6 +797,9 @@ export const App = () => {
           const sizeAttr = wpProduct.attributes?.find(a => a.name.toLowerCase() === 'formaat' || a.name.toLowerCase() === 'size');
           const availableSizes = sizeAttr ? sizeAttr.options : ['A1', 'A2']; 
 
+          // CHECK FOR NSFW TAG
+          const isNSFW = wpProduct.tags ? wpProduct.tags.some(t => t.name.toLowerCase() === 'nsfw' || t.slug.toLowerCase() === 'nsfw') : false;
+
           return {
             id: wpProduct.id,
             title: wpProduct.name,
@@ -814,7 +809,8 @@ export const App = () => {
             color: wpProduct.images[0]?.src || "from-gray-500 to-gray-700", 
             aspect: 'aspect-[3/4]',
             sizes: availableSizes,
-            featured: wpProduct.featured || false
+            featured: wpProduct.featured || false,
+            nsfw: isNSFW
           };
         });
         
@@ -830,8 +826,8 @@ export const App = () => {
   }, []);
 
   const featuredDrops = useMemo(() => {
-    const featured = products.filter(p => p.featured);
-    return featured.length > 0 ? featured.slice(0, 3) : products.slice(0, 3);
+    const featured = products.filter(p => p.featured && !p.nsfw);
+    return featured.length > 0 ? featured.slice(0, 3) : products.filter(p => !p.nsfw).slice(0, 3);
   }, [products]);
 
   useEffect(() => {
@@ -895,6 +891,18 @@ export const App = () => {
     window.scrollTo(0, 0);
   };
 
+  // --- FILTER & PAGINATION ---
+  const visibleProducts = useMemo(() => {
+      return products.filter(p => {
+          if (showNSFW) return true;
+          return !p.nsfw;
+      });
+  }, [products, showNSFW]);
+
+  const ITEMS_PER_PAGE = 12;
+  const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
+  const currentProducts = visibleProducts.slice(collectionPage * ITEMS_PER_PAGE, (collectionPage + 1) * ITEMS_PER_PAGE);
+
   const nextPage = () => {
     if (collectionPage < totalPages - 1) {
       setSlideDirection('right');
@@ -915,6 +923,18 @@ export const App = () => {
     setSlideDirection(i > collectionPage ? 'right' : 'left');
     setCollectionPage(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleNSFW = () => {
+      if (!showNSFW) {
+          if (window.confirm("Deze content bevat materiaal voor volwassenen (18+). Ben je 18 jaar of ouder?")) {
+              setShowNSFW(true);
+              setCollectionPage(0);
+          }
+      } else {
+          setShowNSFW(false);
+          setCollectionPage(0);
+      }
   };
 
   const handleCommissionSubmit = async (e) => {
@@ -1091,10 +1111,6 @@ export const App = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  const ITEMS_PER_PAGE = 12;
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
-  const currentProducts = products.slice(collectionPage * ITEMS_PER_PAGE, (collectionPage + 1) * ITEMS_PER_PAGE);
 
   if (isLoading) {
     return (
@@ -1390,13 +1406,27 @@ export const App = () => {
                     <h2 className="text-4xl md:text-6xl font-bold mb-4">The Latest and Greatest</h2>
                     <div className="h-1 w-20 bg-orange-600"></div>
                   </div>
+                  
+                  {/* NSFW TOGGLE - HOME SECTION */}
+                  <div 
+                      className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full cursor-pointer hover:bg-white/10 transition-colors select-none group"
+                      onClick={toggleNSFW}
+                  >
+                      <span className={`text-[10px] font-mono uppercase tracking-widest transition-colors ${showNSFW ? 'text-red-500' : 'text-green-500'}`}>
+                          {showNSFW ? 'NSFW MODE: ON' : 'SAFE MODE: ON'}
+                      </span>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${showNSFW ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                          <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-300 shadow-sm ${showNSFW ? 'left-4.5 bg-red-500 translate-x-full' : 'left-0.5 bg-green-500'}`}></div>
+                      </div>
+                      {showNSFW ? <ShieldAlert className="w-4 h-4 text-red-500" /> : <EyeOff className="w-4 h-4 text-green-500" />}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {isLoading ? (
                     <div className="text-white">Laden...</div>
                   ) : (
-                    products.slice(0, 8).map((product) => (
+                    visibleProducts.slice(0, 8).map((product) => (
                         <ProductCard 
                             key={product.id}
                             product={product}
@@ -1522,17 +1552,45 @@ export const App = () => {
                         DE COLLECTIE
                     </h1>
                     </div>
-                    <div className="text-right">
-                    <p className="text-sm text-gray-400 font-mono">
-                        PAGINA {collectionPage + 1} / {totalPages}
-                    </p>
+                    
+                    {/* FILTER & PAGINATION CONTROLS */}
+                    <div className="flex flex-col items-end gap-4">
+                        {/* NSFW TOGGLE - COLLECTION */}
+                        <div 
+                            className="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full cursor-pointer hover:bg-white/10 transition-colors select-none group"
+                            onClick={toggleNSFW}
+                        >
+                            <span className={`text-[10px] font-mono uppercase tracking-widest transition-colors ${showNSFW ? 'text-red-500' : 'text-green-500'}`}>
+                                {showNSFW ? 'NSFW MODE: ON' : 'SAFE MODE: ON'}
+                            </span>
+                            <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${showNSFW ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                                <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-300 shadow-sm ${showNSFW ? 'left-4.5 bg-red-500 translate-x-full' : 'left-0.5 bg-green-500'}`}></div>
+                            </div>
+                            {showNSFW ? <ShieldAlert className="w-4 h-4 text-red-500" /> : <EyeOff className="w-4 h-4 text-green-500" />}
+                        </div>
+
+                        <p className="text-sm text-gray-400 font-mono">
+                            PAGINA {collectionPage + 1} / {totalPages}
+                        </p>
                     </div>
                 </div>
                  
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo">
-                     {currentProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} onClick={setSelectedProduct} onAddToCart={addToCart} />
-                     ))}
+                     {currentProducts.length > 0 ? (
+                         currentProducts.map((product) => (
+                            <ProductCard key={product.id} product={product} onClick={setSelectedProduct} onAddToCart={addToCart} />
+                         ))
+                     ) : (
+                         <div className="col-span-full h-96 flex flex-col items-center justify-center text-center">
+                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                <EyeOff className="w-8 h-8 text-gray-500" />
+                             </div>
+                             <h3 className="text-xl font-bold text-white mb-2">No Artifacts Found</h3>
+                             <p className="text-gray-500 max-w-sm">
+                                {showNSFW ? "No explicit content available at this time." : "Enable NSFW mode to view hidden content, or check back later."}
+                             </p>
+                         </div>
+                     )}
                  </div>
                  
                   <div className="flex justify-between items-center border-t border-white/10 pt-8">
