@@ -2102,7 +2102,7 @@ export const App = () => {
        {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+          <div className="relative w-full max-w-6xl h-full md:h-[85vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
              
              {/* --- MOBILE LAYOUT (< md) --- */}
              <div className="md:hidden relative w-full h-full bg-black">
@@ -2217,7 +2217,7 @@ export const App = () => {
                         </button>
                      </div>
                  </div>
-                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
+                 <div className="col-span-5 p-6 md:p-10 flex flex-col bg-black border-l border-white/5 overflow-y-auto h-full">
                      {/* ... Details & Add to Cart ... */}
                      <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
                       {/* ... UPDATED Size Selection ... */}
