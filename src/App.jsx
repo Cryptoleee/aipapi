@@ -1795,9 +1795,9 @@ export const App = () => {
              <div className="container mx-auto px-6 max-w-7xl">
                 <div className="mb-12">
                    <button onClick={() => setView('home')} className="text-sm text-gray-500 hover:text-white flex items-center gap-2 mb-4 transition-colors">
-                      <ChevronLeft className="w-4 h-4" /> Back to Shop
+                      <ChevronLeft className="w-4 h-4" /> Terug naar Winkel
                    </button>
-                   <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">Checkout <span className="text-orange-500">Protocol</span></h1>
+                   <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">Afreken <span className="text-orange-500">Protocol</span></h1>
                 </div>
 
                 <div className="grid lg:grid-cols-12 gap-12">
@@ -1808,39 +1808,39 @@ export const App = () => {
                       <div className="space-y-6">
                          <h3 className="text-xl font-bold border-b border-white/10 pb-4 flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-xs">1</span>
-                            Billing Details
+                            Factuurgegevens
                          </h3>
                          <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">First Name *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Voornaam *</label>
                                <input name="firstName" value={formData.firstName} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                             <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Last Name *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Achternaam *</label>
                                <input name="lastName" value={formData.lastName} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                          </div>
                          <div className="space-y-1">
-                             <label className="text-[10px] font-mono text-gray-500 uppercase">Company Name (Optional)</label>
+                             <label className="text-[10px] font-mono text-gray-500 uppercase">Bedrijfsnaam (Optioneel)</label>
                              <input name="company" value={formData.company} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                          </div>
                          <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Email Address *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">E-mailadres *</label>
                                <input name="email" type="email" value={formData.email} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                             <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Phone *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Telefoonnummer *</label>
                                <input name="phone" value={formData.phone} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                          </div>
                          <div className="grid grid-cols-3 gap-4">
                             <div className="col-span-2 space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Street Address *</label>
-                               <input name="address" value={formData.address} onChange={handleBillingChange} placeholder="Street name" className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Straatnaam *</label>
+                               <input name="address" value={formData.address} onChange={handleBillingChange} placeholder="Straatnaam" className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                              <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Nr *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Huisnummer *</label>
                                <input name="houseNumber" value={formData.houseNumber} onChange={handleBillingChange} placeholder="12A" className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                          </div>
@@ -1850,14 +1850,14 @@ export const App = () => {
                                <input name="postcode" value={formData.postcode} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                             <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">City *</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Stad *</label>
                                <input name="city" value={formData.city} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                             </div>
                          </div>
                          <div className="space-y-1">
-                               <label className="text-[10px] font-mono text-gray-500 uppercase">Country</label>
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Land</label>
                                <select value={billingCountry} onChange={(e) => setBillingCountry(e.target.value)} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm appearance-none cursor-not-allowed opacity-50" disabled>
-                                   <option value="NL">Netherlands</option>
+                                   <option value="NL">Nederland</option>
                                </select>
                         </div>
                       </div>
@@ -1869,7 +1869,7 @@ export const App = () => {
                                  <input type="checkbox" className="hidden" checked={shipToDifferentAddress} onChange={() => setShipToDifferentAddress(!shipToDifferentAddress)} />
                                  {shipToDifferentAddress && <Check className="w-3 h-3 text-white" />}
                              </div>
-                             <span className="text-sm font-bold uppercase group-hover:text-orange-500 transition-colors">Ship to a different address?</span>
+                             <span className="text-sm font-bold uppercase group-hover:text-orange-500 transition-colors">Verzenden naar een ander adres?</span>
                          </label>
 
                          {/* SHIPPING FORM */}
@@ -1877,22 +1877,22 @@ export const App = () => {
                              <div className="mt-6 space-y-6 animate-in slide-in-from-top-2 fade-in pl-8 border-l border-white/10">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                    <label className="text-[10px] font-mono text-gray-500 uppercase">First Name</label>
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase">Voornaam</label>
                                     <input name="firstName" value={shippingData.firstName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                     <div className="space-y-1">
-                                    <label className="text-[10px] font-mono text-gray-500 uppercase">Last Name</label>
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase">Achternaam</label>
                                     <input name="lastName" value={shippingData.lastName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                 </div>
                                 {/* ... Same address fields as billing ... */}
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="col-span-2 space-y-1">
-                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Street Address</label>
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Straatnaam</label>
                                         <input name="address" value={shippingData.address} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Nr</label>
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Huisnummer</label>
                                         <input name="houseNumber" value={shippingData.houseNumber} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                 </div>
@@ -1902,7 +1902,7 @@ export const App = () => {
                                         <input name="postcode" value={shippingData.postcode} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-mono text-gray-500 uppercase">City</label>
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Stad</label>
                                         <input name="city" value={shippingData.city} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
                                     </div>
                                 </div>
@@ -1914,7 +1914,7 @@ export const App = () => {
                       <div className="space-y-6">
                          <h3 className="text-xl font-bold border-b border-white/10 pb-4 flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-xs">2</span>
-                            Payment Method
+                            Betaalmethode
                          </h3>
                          <div className="space-y-3">
                              {paymentMethods.map(method => (
@@ -1935,7 +1935,7 @@ export const App = () => {
                          </div>
                          <div className="flex items-center gap-2 text-xs text-green-500 bg-green-900/10 p-3 rounded-sm border border-green-500/20">
                              <Lock className="w-3 h-3" />
-                             <span className="font-mono">SSL ENCRYPTED CONNECTION - 256-BIT SECURE</span>
+                             <span className="font-mono">SSL BEVEILIGDE VERBINDING - 256-BIT SECURE</span>
                          </div>
                       </div>
                    </div>
@@ -1945,7 +1945,7 @@ export const App = () => {
                       <div className="bg-zinc-900/50 border border-white/10 p-8 rounded-sm sticky top-32">
                           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
                              <Package className="w-5 h-5 text-orange-500" />
-                             Order Summary
+                             Besteloverzicht
                           </h3>
                           
                           <div className="space-y-4 max-h-[300px] overflow-y-auto mb-6 pr-2 custom-scrollbar">
@@ -1966,18 +1966,18 @@ export const App = () => {
 
                           <div className="space-y-3 border-t border-white/10 pt-6 mb-6">
                               <div className="flex justify-between text-sm text-gray-400">
-                                  <span>Subtotal</span>
+                                  <span>Subtotaal</span>
                                   <span className="font-mono text-white">€{cartTotal.toFixed(2)}</span>
                               </div>
                               <div className="flex justify-between text-sm text-gray-400">
-                                  <span>Shipping (NL)</span>
-                                  <span className="font-mono text-green-500">FREE</span>
+                                  <span>Verzending (NL)</span>
+                                  <span className="font-mono text-green-500">GRATIS</span>
                               </div>
                               <div className="flex justify-between text-xl font-black text-white pt-4 border-t border-white/10">
-                                  <span>TOTAL</span>
+                                  <span>TOTAAL</span>
                                   <span>€{cartTotal.toFixed(2)}</span>
                               </div>
-                              <p className="text-[10px] text-gray-500 text-right">Includes VAT</p>
+                              <p className="text-[10px] text-gray-500 text-right">Inclusief BTW</p>
                           </div>
                           
                           <div className="space-y-6">
@@ -1987,7 +1987,7 @@ export const App = () => {
                                      {termsAccepted && <Check className="w-3 h-3 text-white" />}
                                  </div>
                                  <span className="text-xs text-gray-400 group-hover:text-white transition-colors">
-                                     I have read and agree to the website <a href="#" className="underline decoration-orange-500 underline-offset-2 hover:text-orange-500">terms and conditions</a> *
+                                     Ik heb de <a href="#" className="underline decoration-orange-500 underline-offset-2 hover:text-orange-500">algemene voorwaarden</a> gelezen en ga hiermee akkoord *
                                  </span>
                               </label>
 
@@ -1997,9 +1997,9 @@ export const App = () => {
                                  className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
                               >
                                  {isProcessing ? (
-                                     <>Processing <Loader2 className="w-4 h-4 animate-spin" /></>
+                                     <>Verwerken... <Loader2 className="w-4 h-4 animate-spin" /></>
                                  ) : (
-                                     <>Place Order <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                                     <>Bestelling Plaatsen <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
                                  )}
                               </button>
                           </div>
