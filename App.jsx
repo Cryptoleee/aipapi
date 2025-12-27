@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { ShoppingBag, Menu, X, ArrowRight, MoveRight, Sparkles, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, Activity, Home, Smartphone, RotateCcw, ShieldAlert, EyeOff } from 'lucide-react';
+import { ShoppingBag, Menu, X, ArrowRight, MoveRight, Sparkles, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, Activity, Home, Smartphone, RotateCcw, ShieldAlert, EyeOff, Eye as EyeIcon } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * STATUS: RESTORED & ENHANCED
  * - True AR with Wall/Floor detection via Three.js WebXR
  * - WooCommerce Integration
- * - NSFW Filter Logic
+ * - NSFW Filter Logic (Blur instead of Hide)
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -395,7 +395,7 @@ const ARScanner = ({ product, onClose }) => {
 };
 
 // --- SUB-COMPONENT: PRODUCT CARD ---
-const ProductCard = ({ product, onClick, onAddToCart }) => {
+const ProductCard = ({ product, onClick, onAddToCart, showNSFW }) => {
   const [isActive, setIsActive] = useState(false);
   const [hoveredSize, setHoveredSize] = useState(null);
   const [timer, setTimer] = useState(null);
@@ -434,6 +434,9 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
 
   // Gebruik de echte prijs als variatie geladen is, anders fallback naar product basisprijs
   const displayPrice = selectedVariation ? parseFloat(selectedVariation.price) : product.price;
+
+  // NSFW Blur Logic
+  const isBlurred = product.nsfw && !showNSFW;
 
   const handleTouch = () => {
     setIsActive(true);
@@ -476,26 +479,41 @@ const ProductCard = ({ product, onClick, onAddToCart }) => {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {product.color.includes('http') ? (
-          <img 
-            src={product.color} 
-            alt={product.title} 
-            className="absolute inset-0 w-full h-full object-cover opacity-100 transition-all duration-700" 
-            style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}
-          />
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
-        )}
+        <div className={`w-full h-full transition-all duration-700 ${isBlurred ? 'blur-xl scale-110 saturate-0' : ''}`}>
+            {product.color.includes('http') ? (
+            <img 
+                src={product.color} 
+                alt={product.title} 
+                className="absolute inset-0 w-full h-full object-cover opacity-100 transition-all duration-700" 
+                style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}
+            />
+            ) : (
+            <div className={`absolute inset-0 bg-gradient-to-br ${product.color} opacity-100 group-hover:opacity-90 transition-opacity duration-700`}></div>
+            )}
+        </div>
+        
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
         
-        {/* Hover Overlay - Only shows on Image Hover */}
-        <div 
-          className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
-        >
-          <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
-            <Eye className="w-4 h-4" /> Bekijk Print
-          </button>
-        </div>
+        {/* NSFW OVERLAY (Visible when blurred) */}
+        {isBlurred && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="bg-black/50 backdrop-blur-sm border border-red-500/30 px-4 py-2 rounded-full flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-red-500" />
+                    <span className="text-xs font-bold text-white uppercase tracking-widest">NSFW Content</span>
+                </div>
+            </div>
+        )}
+
+        {/* Hover Overlay - Only shows on Image Hover (and if not blurred or user intends to interact) */}
+        {!isBlurred && (
+            <div 
+            className={`absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+            >
+            <button className="bg-white text-black px-6 py-3 font-bold uppercase tracking-wider text-xs hover:scale-105 transition-transform flex items-center gap-2">
+                <EyeIcon className="w-4 h-4" /> Bekijk Print
+            </button>
+            </div>
+        )}
       </div>
       <div className="mt-4 flex justify-between items-start">
         <div className="flex-1">
@@ -893,11 +911,8 @@ export const App = () => {
 
   // --- FILTER & PAGINATION ---
   const visibleProducts = useMemo(() => {
-      return products.filter(p => {
-          if (showNSFW) return true;
-          return !p.nsfw;
-      });
-  }, [products, showNSFW]);
+      return products; // Simply return all products, filtering is visual (blur)
+  }, [products]);
 
   const ITEMS_PER_PAGE = 12;
   const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
@@ -926,15 +941,7 @@ export const App = () => {
   };
 
   const toggleNSFW = () => {
-      if (!showNSFW) {
-          if (window.confirm("Deze content bevat materiaal voor volwassenen (18+). Ben je 18 jaar of ouder?")) {
-              setShowNSFW(true);
-              setCollectionPage(0);
-          }
-      } else {
-          setShowNSFW(false);
-          setCollectionPage(0);
-      }
+      setShowNSFW(prev => !prev);
   };
 
   const handleCommissionSubmit = async (e) => {
@@ -1432,6 +1439,7 @@ export const App = () => {
                             product={product}
                             onClick={setSelectedProduct}
                             onAddToCart={addToCart}
+                            showNSFW={showNSFW}
                         />
                     ))
                   )}
@@ -1578,7 +1586,7 @@ export const App = () => {
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 min-h-[1000px] animate-in fade-in duration-700 ease-out-expo">
                      {currentProducts.length > 0 ? (
                          currentProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} onClick={setSelectedProduct} onAddToCart={addToCart} />
+                            <ProductCard key={product.id} product={product} onClick={setSelectedProduct} onAddToCart={addToCart} showNSFW={showNSFW} />
                          ))
                      ) : (
                          <div className="col-span-full h-96 flex flex-col items-center justify-center text-center">
@@ -2140,7 +2148,7 @@ export const App = () => {
                    {/* Blurred BG for Fill */}
                    <div className="absolute inset-0 overflow-hidden">
                        {selectedProduct.color.includes('http') ? (
-                           <img src={selectedProduct.color} className="w-full h-full object-cover opacity-40 blur-2xl scale-125" />
+                           <img src={selectedProduct.color} className={`w-full h-full object-cover opacity-40 blur-2xl scale-125 ${selectedProduct.nsfw && !showNSFW ? 'blur-3xl saturate-0' : ''}`} />
                        ) : (
                            <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color} opacity-40 blur-2xl`}></div>
                        )}
@@ -2148,7 +2156,7 @@ export const App = () => {
                    {/* Sharp Main Image */}
                    <div className="absolute inset-0 flex items-center justify-center p-8 pb-48">
                         {selectedProduct.color.includes('http') ? (
-                           <img src={selectedProduct.color} className="max-w-full max-h-full object-contain shadow-2xl" />
+                           <img src={selectedProduct.color} className={`max-w-full max-h-full object-contain shadow-2xl ${selectedProduct.nsfw && !showNSFW ? 'blur-xl' : ''}`} />
                         ) : (
                            <div className={`w-full aspect-[3/4] bg-gradient-to-br ${selectedProduct.color} shadow-2xl`}></div>
                         )}
@@ -2233,7 +2241,12 @@ export const App = () => {
              <div className="hidden md:contents">
                  <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
                  <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-auto overflow-hidden shrink-0">
-                     {selectedProduct.color.includes('http') ? <img src={selectedProduct.color} className="w-full h-full object-contain" /> : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
+                     {selectedProduct.color.includes('http') ? (
+                         <img 
+                            src={selectedProduct.color} 
+                            className={`w-full h-full object-contain transition-all duration-300 ${selectedProduct.nsfw && !showNSFW ? 'blur-2xl saturate-0 scale-105' : ''}`} 
+                         />
+                     ) : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
                      
                      {/* AR TRIGGER BUTTON OVERLAY */}
                      <div className="absolute top-4 left-4 z-20">
