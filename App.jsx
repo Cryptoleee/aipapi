@@ -1909,35 +1909,6 @@ export const App = () => {
                              </div>
                          )}
                       </div>
-                      
-                      {/* PAYMENT METHODS */}
-                      <div className="space-y-6">
-                         <h3 className="text-xl font-bold border-b border-white/10 pb-4 flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-xs">2</span>
-                            Betaalmethode
-                         </h3>
-                         <div className="space-y-3">
-                             {paymentMethods.map(method => (
-                                 <label key={method.id} className={`flex items-center gap-4 p-4 border rounded-sm cursor-pointer transition-all ${selectedPaymentMethod === method.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}>
-                                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedPaymentMethod === method.id ? 'border-orange-500' : 'border-gray-500'}`}>
-                                         {selectedPaymentMethod === method.id && <div className="w-2 h-2 rounded-full bg-orange-500" />}
-                                     </div>
-                                     <div className="flex-1">
-                                         <div className="flex items-center gap-2">
-                                             <span className="font-bold">{method.title}</span>
-                                             {method.id.includes('ideal') && <CreditCard className="w-4 h-4 text-pink-600" />}
-                                             {method.id.includes('card') && <CreditCard className="w-4 h-4 text-yellow-500" />}
-                                         </div>
-                                         <p className="text-xs text-gray-400 mt-1">{method.description}</p>
-                                     </div>
-                                 </label>
-                             ))}
-                         </div>
-                         <div className="flex items-center gap-2 text-xs text-green-500 bg-green-900/10 p-3 rounded-sm border border-green-500/20">
-                             <Lock className="w-3 h-3" />
-                             <span className="font-mono">SSL BEVEILIGDE VERBINDING - 256-BIT SECURE</span>
-                         </div>
-                      </div>
                    </div>
 
                    {/* RIGHT COLUMN: SUMMARY */}
