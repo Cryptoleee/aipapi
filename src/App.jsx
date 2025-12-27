@@ -571,6 +571,19 @@ export const App = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
+  // --- FIGURINE EXPLODED VIEW DATA ---
+  const figurineParts = [
+    { id: 'head', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Head.png', x: 50, y: 15, width: 25, depth: 0.08, z: 10, rotate: 0 },
+    { id: 'torso', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Torso.png', x: 50, y: 38, width: 35, depth: 0.04, z: 5, rotate: 0 },
+    { id: 'l_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftarm.png', x: 25, y: 38, width: 20, depth: 0.06, z: 6, rotate: -10 },
+    { id: 'r_arm', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightarm.png', x: 75, y: 38, width: 20, depth: 0.06, z: 6, rotate: 10 },
+    { id: 'l_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/lefthand.png', x: 15, y: 55, width: 15, depth: 0.10, z: 8, rotate: -20 },
+    { id: 'r_hand', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Righthand.png', x: 85, y: 55, width: 15, depth: 0.10, z: 8, rotate: 20 },
+    { id: 'pants', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Pants.png', x: 50, y: 65, width: 30, depth: 0.02, z: 4, rotate: 0 },
+    { id: 'l_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Leftshoe.png', x: 40, y: 85, width: 15, depth: 0.03, z: 4, rotate: -5 },
+    { id: 'r_shoe', src: 'https://www.aipostershop.nl/wp-content/uploads/2025/12/Rightshoe.png', x: 60, y: 85, width: 15, depth: 0.03, z: 4, rotate: 5 },
+  ];
+
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
     title: "HET MOOIE DECODEREN",
@@ -971,15 +984,90 @@ export const App = () => {
     }
 
     setIsProcessing(true);
-    
-    // SIMULATED ORDER PLACEMENT
-    setTimeout(() => {
-        setLastOrderedItems([...cartItems]);
-        setCartItems([]);
-        setView('thankyou');
+
+    // 1. Prepare Line Items
+    const line_items = cartItems.map(item => ({
+        product_id: item.id,
+        variation_id: item.variationId || 0,
+        quantity: item.quantity
+    }));
+
+    // 2. Prepare Order Payload
+    const orderData = {
+        payment_method: selectedPaymentMethod,
+        payment_method_title: paymentMethods.find(p => p.id === selectedPaymentMethod)?.title || 'Payment',
+        set_paid: false,
+        billing: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            address_1: `${formData.address} ${formData.houseNumber}`,
+            city: formData.city,
+            postcode: formData.postcode,
+            country: billingCountry,
+            email: formData.email,
+            phone: formData.phone,
+            company: formData.company
+        },
+        shipping: shipToDifferentAddress ? {
+            first_name: shippingData.firstName,
+            last_name: shippingData.lastName,
+            address_1: `${shippingData.address} ${shippingData.houseNumber}`,
+            city: shippingData.city,
+            postcode: shippingData.postcode,
+            country: shippingCountry,
+            company: shippingData.company
+        } : {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            address_1: `${formData.address} ${formData.houseNumber}`,
+            city: formData.city,
+            postcode: formData.postcode,
+            country: billingCountry,
+            company: formData.company
+        },
+        line_items: line_items
+    };
+
+    try {
+        // 3. Create Order via WooCommerce API
+        const response = await fetch(`${SITE_URL}/wp-json/wc/v3/orders?consumer_key=${CK}&consumer_secret=${CS}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Fout bij aanmaken order.");
+        }
+
+        const order = await response.json();
+        
+        // 4. Handle Payment Redirect
+        // Check if a payment URL is provided (some gateways return this)
+        if (order.payment_url) {
+            window.location.href = order.payment_url;
+        } 
+        // Fallback: Use standard WooCommerce 'Order Pay' endpoint
+        else if (order.id && order.order_key) {
+            const payUrl = `${SITE_URL}/checkout/order-pay/${order.id}/?pay_for_order=true&key=${order.order_key}`;
+            window.location.href = payUrl;
+        } else {
+             // Just in case no payment is needed (e.g. 100% discount or COD without redirect)
+             setLastOrderedItems([...cartItems]);
+             setCartItems([]);
+             setView('thankyou');
+             setIsProcessing(false);
+             window.scrollTo(0,0);
+        }
+
+    } catch (err) {
+        console.error("Order process error:", err);
+        alert(`Er ging iets mis bij het afrekenen: ${err.message}`);
         setIsProcessing(false);
-        window.scrollTo(0,0);
-    }, 2000);
+    }
   };
 
   useEffect(() => {
@@ -1703,84 +1791,223 @@ export const App = () => {
         )}
 
         {view === 'checkout' && (
-            <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 container mx-auto px-6">
-                <button onClick={() => setView('home')} className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-                    <ArrowRight className="w-4 h-4 rotate-180" /> Back to Store
-                </button>
-                <div className="grid md:grid-cols-2 gap-12">
-                    <div>
-                        <h2 className="text-3xl font-black mb-8 uppercase text-white">Shipping Details</h2>
-                        <form onSubmit={handlePlaceOrder} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <input required placeholder="First Name" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, firstName: e.target.value})} />
-                                <input required placeholder="Last Name" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, lastName: e.target.value})} />
-                            </div>
-                            <input required type="email" placeholder="Email Address" className="w-full bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, email: e.target.value})} />
-                            <div className="grid grid-cols-3 gap-4">
-                                <input required placeholder="Street" className="col-span-2 bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, address: e.target.value})} />
-                                <input required placeholder="Nr." className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, houseNumber: e.target.value})} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input required placeholder="City" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, city: e.target.value})} />
-                                <input required placeholder="ZIP / Postcode" className="bg-zinc-900 border border-white/10 p-4 text-white outline-none focus:border-orange-500 rounded-sm" onChange={e => setFormData({...formData, postcode: e.target.value})} />
-                            </div>
-                            
-                            <div className="pt-8 border-t border-white/10">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white"><CreditCard className="w-5 h-5 text-orange-500" /> Payment</h3>
-                                <div className="space-y-4">
-                                    {paymentMethods.map(method => (
-                                        <div key={method.id} onClick={() => setSelectedPaymentMethod(method.id)} className={`p-4 border rounded-sm cursor-pointer flex items-center justify-between transition-all ${selectedPaymentMethod === method.id ? 'bg-orange-500/10 border-orange-500' : 'bg-zinc-900 border-white/10 hover:bg-zinc-800'}`}>
-                                            <span className="font-bold">{method.title}</span>
-                                            {selectedPaymentMethod === method.id && <div className="w-4 h-4 bg-orange-500 rounded-full"></div>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-4">
-                                <input type="checkbox" id="terms" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} className="accent-orange-500 w-4 h-4" />
-                                <label htmlFor="terms" className="text-sm text-gray-400">I agree to the <a href="#" className="text-white underline">Terms & Conditions</a></label>
-                            </div>
-
-                            <button type="submit" disabled={isProcessing} className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 rounded-sm shadow-lg">
-                                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : `Pay €${cartTotal.toFixed(2)}`}
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div className="bg-zinc-900/50 p-8 h-fit border border-white/10 rounded-sm backdrop-blur-sm sticky top-24">
-                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><ShoppingBag className="w-5 h-5" /> Order Summary</h3>
-                        <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                            {cartItems.map((item, i) => (
-                                <div key={i} className="flex gap-4 items-center">
-                                    <div className="w-16 h-20 bg-gray-800 rounded-sm overflow-hidden flex-shrink-0">
-                                        <img src={item.image} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex-1 text-sm">
-                                        <p className="font-bold text-white">{item.title}</p>
-                                        <p className="text-gray-500">{item.size} | x{item.quantity}</p>
-                                    </div>
-                                    <span className="font-mono text-white">€{(item.price * item.quantity).toFixed(2)}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="border-t border-white/10 pt-4 space-y-2">
-                            <div className="flex justify-between text-gray-400 text-sm">
-                                <span>Subtotal</span>
-                                <span>€{cartTotal.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-400 text-sm">
-                                <span>Shipping</span>
-                                <span className="text-green-500">FREE</span>
-                            </div>
-                            <div className="flex justify-between font-black text-xl text-white pt-4 border-t border-white/10 mt-4">
-                                <span>Total</span>
-                                <span>€{cartTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
+          <div className="min-h-screen pt-32 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black">
+             <div className="container mx-auto px-6 max-w-7xl">
+                <div className="mb-12">
+                   <button onClick={() => setView('home')} className="text-sm text-gray-500 hover:text-white flex items-center gap-2 mb-4 transition-colors">
+                      <ChevronLeft className="w-4 h-4" /> Back to Shop
+                   </button>
+                   <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase">Checkout <span className="text-orange-500">Protocol</span></h1>
                 </div>
-            </div>
+
+                <div className="grid lg:grid-cols-12 gap-12">
+                   {/* LEFT COLUMN: FORMS */}
+                   <div className="lg:col-span-7 space-y-12">
+                      
+                      {/* BILLING */}
+                      <div className="space-y-6">
+                         <h3 className="text-xl font-bold border-b border-white/10 pb-4 flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-xs">1</span>
+                            Billing Details
+                         </h3>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">First Name *</label>
+                               <input name="firstName" value={formData.firstName} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Last Name *</label>
+                               <input name="lastName" value={formData.lastName} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                         </div>
+                         <div className="space-y-1">
+                             <label className="text-[10px] font-mono text-gray-500 uppercase">Company Name (Optional)</label>
+                             <input name="company" value={formData.company} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Email Address *</label>
+                               <input name="email" type="email" value={formData.email} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Phone *</label>
+                               <input name="phone" value={formData.phone} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-2 space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Street Address *</label>
+                               <input name="address" value={formData.address} onChange={handleBillingChange} placeholder="Street name" className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                             <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Nr *</label>
+                               <input name="houseNumber" value={formData.houseNumber} onChange={handleBillingChange} placeholder="12A" className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Postcode *</label>
+                               <input name="postcode" value={formData.postcode} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                            <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">City *</label>
+                               <input name="city" value={formData.city} onChange={handleBillingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                            </div>
+                         </div>
+                         <div className="space-y-1">
+                               <label className="text-[10px] font-mono text-gray-500 uppercase">Country</label>
+                               <select value={billingCountry} onChange={(e) => setBillingCountry(e.target.value)} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm appearance-none cursor-not-allowed opacity-50" disabled>
+                                   <option value="NL">Netherlands</option>
+                               </select>
+                        </div>
+                      </div>
+
+                      {/* SHIPPING TOGGLE */}
+                      <div>
+                         <label className="flex items-center gap-3 cursor-pointer group">
+                             <div className={`w-5 h-5 border border-white/20 flex items-center justify-center transition-colors ${shipToDifferentAddress ? 'bg-orange-500 border-orange-500' : 'bg-transparent'}`}>
+                                 <input type="checkbox" className="hidden" checked={shipToDifferentAddress} onChange={() => setShipToDifferentAddress(!shipToDifferentAddress)} />
+                                 {shipToDifferentAddress && <Check className="w-3 h-3 text-white" />}
+                             </div>
+                             <span className="text-sm font-bold uppercase group-hover:text-orange-500 transition-colors">Ship to a different address?</span>
+                         </label>
+
+                         {/* SHIPPING FORM */}
+                         {shipToDifferentAddress && (
+                             <div className="mt-6 space-y-6 animate-in slide-in-from-top-2 fade-in pl-8 border-l border-white/10">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase">First Name</label>
+                                    <input name="firstName" value={shippingData.firstName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                    <div className="space-y-1">
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase">Last Name</label>
+                                    <input name="lastName" value={shippingData.lastName} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                </div>
+                                {/* ... Same address fields as billing ... */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="col-span-2 space-y-1">
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Street Address</label>
+                                        <input name="address" value={shippingData.address} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Nr</label>
+                                        <input name="houseNumber" value={shippingData.houseNumber} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">Postcode</label>
+                                        <input name="postcode" value={shippingData.postcode} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-mono text-gray-500 uppercase">City</label>
+                                        <input name="city" value={shippingData.city} onChange={handleShippingChange} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                                    </div>
+                                </div>
+                             </div>
+                         )}
+                      </div>
+                      
+                      {/* PAYMENT METHODS */}
+                      <div className="space-y-6">
+                         <h3 className="text-xl font-bold border-b border-white/10 pb-4 flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-xs">2</span>
+                            Payment Method
+                         </h3>
+                         <div className="space-y-3">
+                             {paymentMethods.map(method => (
+                                 <label key={method.id} className={`flex items-center gap-4 p-4 border rounded-sm cursor-pointer transition-all ${selectedPaymentMethod === method.id ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}>
+                                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedPaymentMethod === method.id ? 'border-orange-500' : 'border-gray-500'}`}>
+                                         {selectedPaymentMethod === method.id && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                                     </div>
+                                     <div className="flex-1">
+                                         <div className="flex items-center gap-2">
+                                             <span className="font-bold">{method.title}</span>
+                                             {method.id.includes('ideal') && <CreditCard className="w-4 h-4 text-pink-600" />}
+                                             {method.id.includes('card') && <CreditCard className="w-4 h-4 text-yellow-500" />}
+                                         </div>
+                                         <p className="text-xs text-gray-400 mt-1">{method.description}</p>
+                                     </div>
+                                 </label>
+                             ))}
+                         </div>
+                         <div className="flex items-center gap-2 text-xs text-green-500 bg-green-900/10 p-3 rounded-sm border border-green-500/20">
+                             <Lock className="w-3 h-3" />
+                             <span className="font-mono">SSL ENCRYPTED CONNECTION - 256-BIT SECURE</span>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* RIGHT COLUMN: SUMMARY */}
+                   <div className="lg:col-span-5">
+                      <div className="bg-zinc-900/50 border border-white/10 p-8 rounded-sm sticky top-32">
+                          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                             <Package className="w-5 h-5 text-orange-500" />
+                             Order Summary
+                          </h3>
+                          
+                          <div className="space-y-4 max-h-[300px] overflow-y-auto mb-6 pr-2 custom-scrollbar">
+                              {cartItems.map((item) => (
+                                  <div key={item.cartId} className="flex gap-4 items-center">
+                                      <div className="w-16 h-20 bg-gray-800 rounded-sm overflow-hidden relative shrink-0">
+                                         {item.image.includes('http') ? <img src={item.image} className="w-full h-full object-cover" /> : <div className={`w-full h-full bg-gradient-to-br ${item.image}`} />}
+                                         <span className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] w-5 h-5 flex items-center justify-center font-bold">{item.quantity}</span>
+                                      </div>
+                                      <div className="flex-1">
+                                          <h4 className="font-bold text-sm text-white line-clamp-1">{item.title}</h4>
+                                          <p className="text-[10px] text-gray-500 uppercase">{item.size}</p>
+                                      </div>
+                                      <span className="font-mono text-sm">€{(item.price * item.quantity).toFixed(2)}</span>
+                                  </div>
+                              ))}
+                          </div>
+
+                          <div className="space-y-3 border-t border-white/10 pt-6 mb-6">
+                              <div className="flex justify-between text-sm text-gray-400">
+                                  <span>Subtotal</span>
+                                  <span className="font-mono text-white">€{cartTotal.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm text-gray-400">
+                                  <span>Shipping (NL)</span>
+                                  <span className="font-mono text-green-500">FREE</span>
+                              </div>
+                              <div className="flex justify-between text-xl font-black text-white pt-4 border-t border-white/10">
+                                  <span>TOTAL</span>
+                                  <span>€{cartTotal.toFixed(2)}</span>
+                              </div>
+                              <p className="text-[10px] text-gray-500 text-right">Includes VAT</p>
+                          </div>
+                          
+                          <div className="space-y-6">
+                              <label className="flex items-start gap-3 cursor-pointer group">
+                                 <div className={`w-5 h-5 border mt-0.5 flex items-center justify-center shrink-0 transition-colors ${termsAccepted ? 'bg-orange-500 border-orange-500' : 'border-white/20 bg-transparent'}`}>
+                                     <input type="checkbox" className="hidden" checked={termsAccepted} onChange={() => setTermsAccepted(!termsAccepted)} />
+                                     {termsAccepted && <Check className="w-3 h-3 text-white" />}
+                                 </div>
+                                 <span className="text-xs text-gray-400 group-hover:text-white transition-colors">
+                                     I have read and agree to the website <a href="#" className="underline decoration-orange-500 underline-offset-2 hover:text-orange-500">terms and conditions</a> *
+                                 </span>
+                              </label>
+
+                              <button 
+                                 onClick={handlePlaceOrder}
+                                 disabled={isProcessing}
+                                 className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group"
+                              >
+                                 {isProcessing ? (
+                                     <>Processing <Loader2 className="w-4 h-4 animate-spin" /></>
+                                 ) : (
+                                     <>Place Order <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                                 )}
+                              </button>
+                          </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
         )}
         
         {view === 'thankyou' && (
@@ -1871,65 +2098,6 @@ export const App = () => {
         )}
         </div> 
 
-       {/* --- CART DRAWER (NOW OUTSIDE THE BLURRED AREA) --- */}
-       {cartOpen && (
-          <div className="fixed inset-0 z-[150] flex justify-end">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setCartOpen(false)}></div>
-              <div className="relative w-full max-w-md bg-zinc-900 border-l border-white/10 h-full p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
-                  <div className="flex justify-between items-center mb-8">
-                      <h2 className="text-2xl font-black uppercase tracking-tighter">Jouw Cart ({cartCount})</h2>
-                      <button onClick={() => setCartOpen(false)} className="text-gray-500 hover:text-white"><X className="w-6 h-6"/></button>
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-                      {cartItems.length === 0 ? (
-                          <div className="text-center text-gray-500 mt-10">
-                              <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-20"/>
-                              <p>Nog niets gekozen.</p>
-                          </div>
-                      ) : (
-                          cartItems.map((item) => (
-                              <div key={item.cartId} className="flex gap-4 group">
-                                   <div className="w-20 h-24 bg-gray-800 overflow-hidden rounded-sm relative">
-                                       <img src={item.image} className="w-full h-full object-cover" />
-                                   </div>
-                                   <div className="flex-1">
-                                       <div className="flex justify-between items-start">
-                                           <h3 className="font-bold text-sm uppercase">{item.title}</h3>
-                                           <button onClick={() => removeFromCart(item.cartId)} className="text-gray-600 hover:text-red-500"><X className="w-4 h-4"/></button>
-                                       </div>
-                                       <p className="text-xs text-gray-400 font-mono mb-2">{item.size}</p>
-                                       <div className="flex justify-between items-end">
-                                           <p className="font-bold">€{item.price.toFixed(2)}</p>
-                                           <div className="flex items-center gap-3 bg-black/50 rounded-full px-2 py-1 border border-white/10">
-                                               <button onClick={() => updateQuantity(item.cartId, -1)} className="text-gray-400 hover:text-white"><Minus className="w-3 h-3"/></button>
-                                               <span className="text-xs font-mono w-3 text-center">{item.quantity}</span>
-                                               <button onClick={() => updateQuantity(item.cartId, 1)} className="text-gray-400 hover:text-white"><Plus className="w-3 h-3"/></button>
-                                           </div>
-                                       </div>
-                                   </div>
-                              </div>
-                          ))
-                      )}
-                  </div>
-                  
-                  <div className="border-t border-white/10 pt-6 mt-4">
-                      <div className="flex justify-between items-center mb-6 text-xl font-black uppercase">
-                          <span>Totaal</span>
-                          <span>€{cartTotal.toFixed(2)}</span>
-                      </div>
-                      <button 
-                          onClick={() => { setCartOpen(false); setView('checkout'); }}
-                          disabled={cartItems.length === 0}
-                          className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                          Checkout
-                      </button>
-                  </div>
-              </div>
-          </div>
-       )}
-
        {/* ... Modals (SelectedProduct, Contact, Commission, Cart) ... */}
        {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
@@ -1937,7 +2105,7 @@ export const App = () => {
           <div className="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
              
              {/* --- MOBILE LAYOUT (< md) --- */}
-             <div className="md:hidden relative w-full h-[100dvh] bg-black">
+             <div className="md:hidden relative w-full h-full bg-black">
                {/* 1. Full Screen Image Layer */}
                <div className="absolute inset-0 z-0">
                    {/* Blurred BG for Fill */}
@@ -1971,7 +2139,7 @@ export const App = () => {
                </div>
 
                {/* 3. Bottom Controls Layer (Floating Overlay) */}
-               <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pt-24 pb-16 md:pb-6 bg-gradient-to-t from-black via-black/95 to-transparent">
+               <div className="absolute bottom-0 left-0 right-0 z-20 p-6 bg-gradient-to-t from-black via-black/95 to-transparent pt-20">
                    <div className="space-y-5">
                         {/* Title & Price */}
                         <div className="flex justify-between items-end">
@@ -2049,17 +2217,11 @@ export const App = () => {
                         </button>
                      </div>
                  </div>
-                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-between bg-black border-l border-white/5 overflow-y-auto flex-1">
-                     <div className="space-y-4">
-                        <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-mono text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">LIMITED EDITION</span>
-                           {selectedVariation && <span className="text-[10px] font-mono text-gray-500">ID: {selectedVariation.id}</span>}
-                        </div>
-                     </div>
-
+                 <div className="col-span-5 p-6 md:p-10 flex flex-col justify-center bg-black border-l border-white/5 overflow-y-auto flex-1">
+                     {/* ... Details & Add to Cart ... */}
+                     <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
                       {/* ... UPDATED Size Selection ... */}
-                      <div className="mt-8 space-y-8">
+                      <div className="mt-auto space-y-8">
                          <div className="space-y-6">
                             <div className="flex items-end justify-between border-b border-white/10 pb-4">
                                <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
@@ -2092,12 +2254,12 @@ export const App = () => {
                             </div>
                          </div>
                           <div className="flex gap-3">
-                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)]">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
                             {/* ... Share ... */}
                             <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
                           </div>
                           {/* ... Footer Info ... */}
-                          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                          <div className="grid grid-cols-2 gap-4 pt-4">
                               <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
                               <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
                           </div>
@@ -2105,6 +2267,156 @@ export const App = () => {
                  </div>
              </div>
           </div>
+        </div>
+      )}
+
+      {/* CART DRAWER */}
+      <div className={`fixed inset-0 z-[150] pointer-events-none ${cartOpen ? 'pointer-events-auto' : ''}`}>
+        {/* Backdrop */}
+        <div 
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${cartOpen ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => setCartOpen(false)}
+        />
+        
+        {/* Drawer */}
+        <div className={`absolute top-0 right-0 h-full w-full md:w-[500px] bg-black border-l border-white/10 shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${cartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+           <div className="flex flex-col h-full p-6 md:p-10">
+              <div className="flex items-center justify-between mb-8">
+                 <h2 className="text-3xl font-black uppercase tracking-tighter">Your Stash <span className="text-orange-500">({cartCount})</span></h2>
+                 <button onClick={() => setCartOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6" /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                 {cartItems.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500 opacity-50">
+                       <ShoppingBag className="w-16 h-16 mb-4" />
+                       <p className="font-mono text-sm uppercase">Empty Void</p>
+                    </div>
+                 ) : (
+                    cartItems.map((item) => (
+                       <div key={item.cartId} className="flex gap-4 group">
+                          <div className="w-20 h-28 bg-gray-900 border border-white/10 overflow-hidden relative shrink-0">
+                             {item.image.includes('http') ? (
+                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                             ) : (
+                                <div className={`w-full h-full bg-gradient-to-br ${item.image}`}></div>
+                             )}
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between py-1">
+                             <div>
+                                <div className="flex justify-between items-start">
+                                   <h4 className="font-bold text-white uppercase leading-none">{item.title}</h4>
+                                   <button onClick={() => removeFromCart(item.cartId)} className="text-gray-600 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                </div>
+                                <p className="text-[10px] font-mono text-gray-500 mt-1 uppercase">Size: {item.size}</p>
+                             </div>
+                             <div className="flex justify-between items-end">
+                                <div className="flex items-center gap-3 bg-white/5 rounded-sm px-2 py-1">
+                                   <button onClick={() => updateQuantity(item.cartId, -1)} className="text-gray-400 hover:text-white"><Minus className="w-3 h-3" /></button>
+                                   <span className="text-xs font-mono w-4 text-center">{item.quantity}</span>
+                                   <button onClick={() => updateQuantity(item.cartId, 1)} className="text-gray-400 hover:text-white"><Plus className="w-3 h-3" /></button>
+                                </div>
+                                <span className="font-bold text-sm">€{(item.price * item.quantity).toFixed(2)}</span>
+                             </div>
+                          </div>
+                       </div>
+                    ))
+                 )}
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
+                 <div className="flex justify-between text-sm uppercase tracking-widest text-gray-400">
+                    <span>Subtotal</span>
+                    <span className="text-white font-bold">€{cartTotal.toFixed(2)}</span>
+                 </div>
+                 <p className="text-[10px] text-gray-600 font-mono text-center">Shipping & Taxes calculated at checkout</p>
+                 <button 
+                    onClick={() => { setCartOpen(false); navigateTo('checkout'); }}
+                    disabled={cartItems.length === 0}
+                    className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black"
+                 >
+                    Checkout Process
+                 </button>
+              </div>
+           </div>
+        </div>
+      </div>
+
+      {/* MOBILE MENU */}
+      <div className={`fixed inset-0 z-[200] bg-black transform transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+         <div className="p-6 flex justify-between items-center border-b border-white/10">
+            <span className="font-bold text-xl tracking-tighter">MENU</span>
+            <button onClick={() => setMobileMenuOpen(false)}><X className="w-6 h-6" /></button>
+         </div>
+         <div className="p-6 flex flex-col gap-6 text-2xl font-black uppercase tracking-tighter">
+            <button onClick={() => navigateTo('home')} className="text-left hover:text-orange-500">Home</button>
+            <button onClick={() => navigateTo('collection')} className="text-left hover:text-orange-500">Collecties</button>
+            <button onClick={() => navigateTo('process')} className="text-left hover:text-orange-500">Proces</button>
+            <button onClick={() => navigateTo('about')} className="text-left hover:text-orange-500">Over Ons</button>
+         </div>
+      </div>
+
+      {/* COMMISSION MODAL */}
+      {commissionOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setCommissionOpen(false)}></div>
+           <div className="relative w-full max-w-lg bg-black border border-white/10 p-8 rounded-sm animate-in zoom-in duration-300 shadow-2xl">
+              <button onClick={() => setCommissionOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+              
+              <div className="mb-6">
+                 <h2 className="text-2xl font-black uppercase mb-2">Start Commission</h2>
+                 <p className="text-gray-400 text-sm">Describe your vision. We will generate the soul.</p>
+              </div>
+
+              {formSubmitted ? (
+                 <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+                       <Check className="w-8 h-8 text-green-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Request Received</h3>
+                    <p className="text-gray-400 text-sm">We will contact you within 24 hours.</p>
+                 </div>
+              ) : (
+                 <form onSubmit={handleCommissionSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-mono text-gray-500 uppercase">Your Name</label>
+                       <input name="name" required className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-mono text-gray-500 uppercase">Email Address</label>
+                       <input name="email" type="email" required className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm" />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-mono text-gray-500 uppercase">Vision Description</label>
+                       <textarea name="message" required rows={4} className="w-full bg-white/5 border border-white/10 p-3 text-sm focus:border-orange-500 outline-none text-white rounded-sm resize-none" placeholder="Cyberpunk city with neon rain..."></textarea>
+                    </div>
+                    
+                    {/* File Upload UI */}
+                     <div 
+                        className="border-2 border-dashed border-white/10 rounded-sm p-6 text-center cursor-pointer hover:border-orange-500/50 hover:bg-white/5 transition-all"
+                        onClick={() => fileInputRef.current.click()}
+                     >
+                        <input 
+                           type="file" 
+                           ref={fileInputRef} 
+                           className="hidden" 
+                           onChange={(e) => setCommissionFile(e.target.files[0])} 
+                           accept="image/*"
+                        />
+                        <Upload className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+                        <p className="text-xs text-gray-400">{commissionFile ? commissionFile.name : "Upload Reference (Optional)"}</p>
+                     </div>
+
+                    <button 
+                        type="submit" 
+                        disabled={isUploading}
+                        className="w-full bg-white text-black py-4 font-bold uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all mt-4 flex justify-center items-center gap-2"
+                    >
+                        {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Send Request <Send className="w-4 h-4" /></>}
+                    </button>
+                 </form>
+              )}
+           </div>
         </div>
       )}
     </div>
