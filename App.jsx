@@ -591,37 +591,8 @@ const App = () => {
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
     title: "Wie is Ai Papi?",
-    text: "Creativiteit is de kern. Als eigenaar van Wijzijnwolf.nl ben ik dagelijks bezig met video en beeld. Ai Papi is waar die visuele ervaring en technische nieuwsgierigheid samenkomen."
+    text: "Ai Papi is een initiatief van wijzijnwolf.nl We zijn een stel creatievelingen die obsessed zijn met alle ontwikkeling van Ai. Iedere dag volgen we de laatste updates en verfijnen we onze kennis. Altijd up 2 date. Combineer dat met onze liefde voor contemporary fotografie, (digitale) kunst en je hebt een perfect mix om zelf aan de slag te gaan en vette dingen te maken."
   });
-
-  useEffect(() => {
-    const fetchPageData = async () => {
-        try {
-            const response = await fetch(`${SITE_URL}/wp-json/wp/v2/pages?slug=over-ons`);
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                const page = data[0];
-                let cleanText = page.content.rendered.replace(/<[^>]+>/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
-                
-                // FORCE TEXT REPLACEMENT: Aipostershop.nl -> Ai Papi
-                cleanText = cleanText.replace(/Aipostershop\.nl/gi, "Ai Papi");
-
-                if (cleanText.length < 5) {
-                    cleanText = "Tekst kon niet geladen worden vanuit WordPress. Controleer de pagina content.";
-                }
-
-                setAboutContent({
-                    title: "Wie is Ai Papi?", // FORCE TITLE CHANGE
-                    text: cleanText
-                });
-            }
-        } catch (err) {
-            console.error("Kon WP pagina tekst niet laden:", err);
-        }
-    };
-    fetchPageData();
-  }, []);
 
   // --- FETCH PAYMENT GATEWAYS ---
   useEffect(() => {
@@ -1252,7 +1223,8 @@ const App = () => {
                   </h1>
 
                   <p className="text-gray-400 text-lg md:text-xl max-w-md leading-relaxed">
-                      Esthetische artworks gedrukt op hoog kwaliteit papier. Een blend van van neurale netwerken en tastbare kunst.                    </p>
+                      Digitale artworks die gemaakt zijn voor aan je muur. Gedrukt op hoog kwaliteit papier. Gecreëerd met liefde en passie door Ai Papi.
+                  </p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                     {/* Minimalist Stat Block */}
@@ -1462,7 +1434,7 @@ const App = () => {
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-purple-600">ALGORITME</span>
                     </h2>
                     <p className="text-xl font-medium leading-relaxed mb-6">
-                      Ai Papi is een print studio die esthetische digitale kunst als print beschikbaar maakt. Voor iedere locatie!
+                      Ontstaan in het digitale domein. Vastgelegd op papier. Kunst uit het algoritme, bedoeld voor echte muren. Wij creeeren, jij hangt 'm op.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                         <div 
@@ -1638,10 +1610,10 @@ const App = () => {
                 <div className="text-center max-w-4xl mx-auto mb-24">
                    <p className="text-orange-500 font-mono text-xs uppercase tracking-widest mb-4">Voorbij de Prompt</p>
                    <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-none">
-                      HET ALGORITME <br/> & <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500">DE ARTIEST</span>
+                      HET ALGORITME
                    </h1>
                    <p className="text-xl text-gray-400 leading-relaxed max-w-2xl mx-auto">
-                     Kunst genereren is makkelijk. Een <i>ziel</i> genereren is een ambacht. We combineren traditionele ontwerpprincipes met geavanceerde neurale netwerken om iets echt unieks te creëren.
+                     Een ai afbeelding is snel gemaakt. Maar om daadwerkelijk iets unieks te maken vraagt creativiteit, technische kennis en heel veel tijd. Het algoritme genereert mogelijkheden. Wij maken, selecteren en verfijnen tot er werk ontstaat dat blijft hangen.
                    </p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-8 mb-32">
@@ -1651,7 +1623,7 @@ const App = () => {
                       </div>
                       <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-orange-500">01.</span> CONCEPT</h3>
                       <p className="text-gray-400 leading-relaxed">
-                          Het begint met een visie. We typen niet zomaar woorden; we deconstrueren abstracte ideeën naar beeldtaal, puttend uit tien jaar ervaring in ontwerptheorie en fotografie.
+                          Het begint met een idee, een concept. We typen niet zomaar woorden; we vertalen onze abstracte ideeën naar een prompt, die bestaat uit meer dan tien jaar ervaring in de creatieve offline en online wereld.
                       </p>
                    </div>
                    <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
@@ -1660,7 +1632,7 @@ const App = () => {
                       </div>
                       <h3 className="text-2xl font-black mb-4 flex items-center gap-3"><span className="text-purple-500">02.</span> ENGINEERING</h3>
                       <p className="text-gray-400 leading-relaxed">
-                          Het geheime ingrediënt. Met jarenlange kennis sinds de vroege dagen van DALL-E 1, "koken" we de perfecte prompt, met honderden iteraties om de belichting en compositie van het model te sturen.
+                          Een eerste prompt is nooit perfect maar een basis om mee verder te koken. Beetje bij beetje halen we er weer ingrediënten uit en voegen we nieuwe toe. Tot we een perfect visueel gerecht hebben klaar gemaakt.
                       </p>
                    </div>
                    <div className="bg-white/5 border border-white/10 p-8 rounded-sm relative overflow-hidden group hover:bg-white/10 transition-colors">
@@ -1750,7 +1722,7 @@ const App = () => {
                           </h1>
                           
                           {/* Text */}
-                          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-medium mb-12 max-w-2xl border-l-4 border-orange-500 pl-6 bg-gradient-to-r from-black/50 to-transparent py-2">
+                          <p className="text-lg text-gray-400 leading-relaxed font-medium mb-12 max-w-2xl border-l-4 border-orange-500 pl-6 bg-gradient-to-r from-black/50 to-transparent py-2">
                              {aboutContent.text}
                           </p>
                           
@@ -1778,43 +1750,6 @@ const App = () => {
                           </div>
                       </div>
                   </div>
-             </div>
-
-             <div className="bg-black text-white py-32 relative overflow-hidden border-t border-white/10">
-                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent opacity-50"></div>
-                <div className="container mx-auto px-6 relative z-10">
-                   <div className="max-w-4xl mx-auto">
-                      <h2 className="text-4xl md:text-6xl font-black mb-12 tracking-tighter">VAN VIDEO NAAR VISIE</h2>
-                      <div className="grid md:grid-cols-2 gap-12 text-lg leading-relaxed font-medium text-gray-400">
-                         <p>
-                            Ik ben altijd al een maker geweest. Met mijn bedrijf <span className="text-white">Wijzijnwolf.nl</span> produceer ik dagelijks video-content, en die drive om te creëren stopt niet als de camera uitgaat. Ik volg de AI-ontwikkelingen op de voet en gebruik die dagelijkse stroom aan innovatie om nieuwe beelden te smeden. De technische bagage die ik door de jaren heen heb opgebouwd, blijkt nu de perfecte toolset voor het aansturen van deze modellen.
-                         </p>
-                         <p>
-                            Het ontwikkelen van een prompt is voor mij een nieuw soort ambacht. Het is zoeken naar dat specifieke, creatieve mengsel van woorden dat precies de juiste snaar raakt. Het gaat om het creëren van het perfecte beeld en de juiste vibe, waarbij ik mijn kennis van licht en compositie nu toepas via tekst en code. Ai Papi is het tastbare resultaat van die digitale zoektocht.
-                         </p>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 mt-20 border-t border-white/10 pt-12">
-                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
-                            <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
-                               <Terminal className="w-8 h-8" />
-                            </div>
-                            <h4 className="font-bold uppercase tracking-widest text-sm">Code</h4>
-                         </div>
-                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
-                             <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
-                               <Cpu className="w-8 h-8" />
-                            </div>
-                            <h4 className="font-bold uppercase tracking-widest text-sm">Compute</h4>
-                         </div>
-                         <div className="text-center group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
-                             <div className="w-16 h-16 bg-white/5 text-white rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-600 transition-colors border border-white/10">
-                               <Palette className="w-8 h-8" />
-                            </div>
-                            <h4 className="font-bold uppercase tracking-widest text-sm">Canvas</h4>
-                         </div>
-                      </div>
-                   </div>
-                </div>
              </div>
           </div>
         )}
