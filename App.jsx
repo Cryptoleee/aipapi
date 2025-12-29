@@ -541,7 +541,7 @@ const ProductCard = ({ product, onClick, onAddToCart, showNSFW }) => {
   );
 };
 
-export const App = () => {
+const App = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -2238,72 +2238,86 @@ export const App = () => {
              </div>
 
              {/* --- DESKTOP LAYOUT (md+) --- */}
-             <div className="hidden md:contents">
-                 <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 z-20 bg-black hover:bg-white hover:text-black text-white p-2 rounded-full transition-colors border border-white/10 group"><X className="w-5 h-5 group-hover:rotate-90 transition-transform" /></button>
-                 <div className="relative col-span-7 bg-zinc-900/50 flex items-center justify-center h-auto overflow-hidden shrink-0">
+             <div className="hidden md:flex h-full col-span-12">
+                 <div className="relative w-[60%] h-full bg-black flex items-center justify-center overflow-hidden group">
+                     {/* IMAGE - NO PADDING */}
+                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none"></div>
                      {selectedProduct.color.includes('http') ? (
                          <img 
                             src={selectedProduct.color} 
-                            className={`w-full h-full object-contain transition-all duration-300 ${selectedProduct.nsfw && !showNSFW ? 'blur-2xl saturate-0 scale-105' : ''}`} 
+                            className={`w-full h-full object-contain ${selectedProduct.nsfw && !showNSFW ? 'blur-2xl saturate-0 scale-105' : ''}`} 
                          />
                      ) : <div className={`w-full h-full bg-gradient-to-br ${selectedProduct.color}`}></div>}
                      
-                     {/* AR TRIGGER BUTTON OVERLAY */}
-                     <div className="absolute top-4 left-4 z-20">
+                     {/* Floating AR Button */}
+                     <div className="absolute top-6 left-6 z-20">
                         <button 
                             onClick={() => setShowAR(true)}
-                            className="bg-black/80 backdrop-blur-md border border-orange-500/50 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg"
+                            className="bg-black/50 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2"
                         >
-                            <Smartphone className="w-4 h-4 text-orange-500" />
+                            <Smartphone className="w-3 h-3" />
                             View in AR
                         </button>
                      </div>
                  </div>
-                 <div className="col-span-5 p-6 md:p-10 flex flex-col bg-black border-l border-white/5 overflow-y-auto h-full">
-                     {/* ... Details & Add to Cart ... */}
-                     <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                      {/* ... UPDATED Size Selection ... */}
-                      <div className="mt-auto space-y-8">
-                         <div className="space-y-6">
-                            <div className="flex items-end justify-between border-b border-white/10 pb-4">
-                               <span className="text-4xl font-black tracking-tighter">€{currentPrice.toFixed(2)}</span>
-                               <div className="text-right">
-                                  <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Selecteer Formaat</p>
-                                  <div className="flex gap-2 justify-end flex-wrap">
-                                     {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                                        selectedProduct.sizes.map(size => (
-                                           <button
-                                              key={size}
-                                              onClick={() => setSelectedSize(size)}
-                                              className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${
-                                              selectedSize === size 
-                                                 ? 'border-white bg-white text-black' 
-                                                 : 'border-white/20 text-gray-400 hover:border-white hover:text-white'
-                                              }`}
-                                           >
-                                              {size}
-                                           </button>
-                                        ))
-                                     ) : (
-                                        // ... fallback ...
-                                        <>
-                                           <button onClick={() => setSelectedSize('A1')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A1' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A1</button>
-                                           <button onClick={() => setSelectedSize('A2')} className={`px-4 py-2 text-xs font-bold border transition-all duration-300 ${selectedSize === 'A2' ? 'border-white bg-white text-black' : 'border-white/20 text-gray-400 hover:border-white hover:text-white'}`}>A2</button>
-                                        </>
-                                     )}
-                                  </div>
-                               </div>
+                 
+                 <div className="w-[40%] bg-zinc-950 p-8 flex flex-col h-full border-l border-white/10 relative">
+                     <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 z-20 bg-transparent hover:bg-white hover:text-black text-gray-500 p-2 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+
+                     <div className="mb-1">
+                        <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">{selectedProduct.category}</span>
+                     </div>
+                     <h2 className="text-5xl font-black mb-2 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
+                     <p className="text-2xl font-bold text-gray-300 mb-6">€{currentPrice.toFixed(2)}</p>
+
+                     {/* Product Description Filling the Void */}
+                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
+                        <p className="text-gray-400 text-sm leading-relaxed">{selectedProduct.desc}</p>
+                        
+                        <div className="pt-4 border-t border-white/5 space-y-3">
+                            <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-2">Specifications</h4>
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500 font-mono uppercase">
+                                <div className="flex items-center gap-2"><Layers className="w-3 h-3 text-gray-400" /> 250g/m² Satin</div>
+                                <div className="flex items-center gap-2"><Printer className="w-3 h-3 text-gray-400" /> Giclée Print</div>
+                                <div className="flex items-center gap-2"><Maximize className="w-3 h-3 text-gray-400" /> High Res</div>
+                                <div className="flex items-center gap-2"><Check className="w-3 h-3 text-gray-400" /> Verified Art</div>
+                            </div>
+                        </div>
+                     </div>
+
+                      <div className="mt-6 pt-6 border-t border-white/10 space-y-4">
+                         <div className="space-y-2">
+                            <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-500">
+                               <span>Select Size</span>
+                               <span>{selectedSize}</span>
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
+                                selectedProduct.sizes.map(size => (
+                                    <button
+                                        key={size}
+                                        onClick={() => setSelectedSize(size)}
+                                        className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all duration-300 ${
+                                        selectedSize === size 
+                                            ? 'border-white bg-white text-black' 
+                                            : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/30 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                    >
+                                        {size}
+                                    </button>
+                                ))
+                                ) : (
+                                // ... fallback ...
+                                <>
+                                    <button onClick={() => setSelectedSize('A1')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all duration-300 ${selectedSize === 'A1' ? 'border-white bg-white text-black' : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/30'}`}>A1</button>
+                                    <button onClick={() => setSelectedSize('A2')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all duration-300 ${selectedSize === 'A2' ? 'border-white bg-white text-black' : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/30'}`}>A2</button>
+                                </>
+                                )}
                             </div>
                          </div>
-                          <div className="flex gap-3">
-                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-14 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
-                            {/* ... Share ... */}
-                            <button onClick={() => handleShare(selectedProduct.id)} className="w-14 h-14 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
-                          </div>
-                          {/* ... Footer Info ... */}
-                          <div className="grid grid-cols-2 gap-4 pt-4">
-                              <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Truck className="w-3 h-3" /> Gratis Verzending</div>
-                              <div className="flex items-center gap-2 text-[10px] text-gray-500 uppercase tracking-wider"><Award className="w-3 h-3" /> Museum Kwaliteit</div>
+                          <div className="flex gap-2">
+                            <button onClick={() => { addToCart(selectedProduct, selectedSize, currentPrice, selectedVariation?.id); setSelectedProduct(null); }} className="flex-1 bg-white text-black h-12 font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 text-sm rounded-sm">Toevoegen <ShoppingBag className="w-4 h-4" /></button>
+                            <button onClick={() => handleShare(selectedProduct.id)} className="w-12 h-12 border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors rounded-sm">{copiedId === selectedProduct.id ? (<Check className="w-5 h-5 text-green-500" />) : (<Share2 className="w-5 h-5 text-white" />)}</button>
                           </div>
                       </div>
                  </div>
@@ -2464,3 +2478,5 @@ export const App = () => {
     </div>
   );
 };
+
+export default App;
