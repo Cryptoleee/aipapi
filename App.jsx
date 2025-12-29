@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { ShoppingBag, Menu, X, ArrowRight, MoveRight, Sparkles, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, Activity, Home, Smartphone, RotateCcw, ShieldAlert, EyeOff, Eye as EyeIcon } from 'lucide-react';
+import { ShoppingBag, Menu, X, ArrowRight, MoveRight, Sparkles, Eye, ChevronLeft, ChevronRight, Wand2, Upload, Check, Cpu, Palette, Terminal, Trash2, Minus, Plus, Share2, Layers, Printer, Package, Aperture, Loader2, Send, Truck, Award, Maximize, Leaf, ScanLine, Activity, Home, Smartphone, RotateCcw, ShieldAlert, EyeOff, Eye as EyeIcon, Instagram } from 'lucide-react';
 
 /**
  * AiPapi - Headless Frontend (React)
  * STATUS: RESTORED & ENHANCED
- * - True AR with Wall/Floor detection via Three.js WebXR
- * - WooCommerce Integration
- * - NSFW Filter Logic (Blur instead of Hide)
  */
 
 // --- CONFIGURATIE (Global) ---
@@ -593,7 +590,7 @@ const App = () => {
 
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
-    title: "HET MOOIE DECODEREN",
+    title: "Wie is Ai Papi?",
     text: "Creativiteit is de kern. Als eigenaar van Wijzijnwolf.nl ben ik dagelijks bezig met video en beeld. Ai Papi is waar die visuele ervaring en technische nieuwsgierigheid samenkomen."
   });
 
@@ -607,12 +604,15 @@ const App = () => {
                 const page = data[0];
                 let cleanText = page.content.rendered.replace(/<[^>]+>/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
                 
+                // FORCE TEXT REPLACEMENT: Aipostershop.nl -> Ai Papi
+                cleanText = cleanText.replace(/Aipostershop\.nl/gi, "Ai Papi");
+
                 if (cleanText.length < 5) {
                     cleanText = "Tekst kon niet geladen worden vanuit WordPress. Controleer de pagina content.";
                 }
 
                 setAboutContent({
-                    title: page.title.rendered,
+                    title: "Wie is Ai Papi?", // FORCE TITLE CHANGE
                     text: cleanText
                 });
             }
@@ -1710,111 +1710,74 @@ const App = () => {
         )}
 
         {view === 'about' && (
-          <div className="min-h-screen pt-40 pb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black">
-             <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,100,0,0.15),transparent_50%)] pointer-events-none"></div>
-             
-             <div className="container mx-auto px-6 mb-32 relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-20">
-                   
-                   <div className="w-full md:w-1/2 flex justify-center perspective-1000 relative">
-                      <div className="absolute -inset-1 bg-orange-500/5 blur-xl animate-pulse-slow pointer-events-none"></div>
-                      <div className="absolute -inset-20 bg-orange-600/5 blur-[100px] rounded-full pointer-events-none"></div>
-                      
-                      <div 
-                         className="relative w-[340px] h-[460px] transition-transform duration-100 ease-linear group"
-                         style={{
-                           transform: `rotateY(${(mousePos.x - window.innerWidth/2) * 0.05}deg) rotateX(${-(mousePos.y - window.innerHeight/2) * 0.05}deg)`
-                         }}
-                      >
-                         <div className="absolute inset-0 z-0">
-                            <img 
-                              src="https://www.aipostershop.nl/wp-content/uploads/2025/11/Lee.jpg" 
-                              alt="The Architect" 
-                              className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity duration-700" 
-                              style={{
-                                maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
-                                WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
-                              }}
-                            />
-                            {/* Holographic Scanline Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/10 to-transparent h-2 w-full animate-[scan_2s_linear_infinite] pointer-events-none"></div>
-                            
-                            {/* Glitch/Noise Overlay */}
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
-                         </div>
-                         
-                         {/* Floating HUD Elements */}
-                         <div className="absolute top-10 -right-12 space-y-4 text-right hidden md:block">
-                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-orange-500 p-3 pr-4 transform translate-x-4 group-hover:translate-x-0 transition-transform duration-500">
-                                <p className="text-[10px] text-gray-400 font-mono mb-1">IDENTITY_MATRIX</p>
-                                <h3 className="text-xl font-black text-white">DE ARCHITECT</h3>
-                            </div>
-                            
-                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-green-500 p-2 pr-4 transform translate-x-8 group-hover:translate-x-0 transition-transform duration-700 delay-100">
-                                <div className="flex items-center justify-end gap-2 text-xs font-mono text-green-400">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></span>
-                                    SYSTEM_ONLINE
+          <div className="min-h-screen animate-in fade-in duration-700 bg-black">
+             {/* HERO SECTION - NEW DESIGN */}
+             <div className="relative w-full min-h-screen flex items-end">
+                  {/* Background Image Layer */}
+                  <div className="absolute inset-0 z-0">
+                      <img 
+                        src="https://www.aipostershop.nl/wp-content/uploads/2025/12/LeeOranje-scaled.jpg" 
+                        alt="The Architect" 
+                        className="w-full h-full object-cover object-top"
+                      />
+                      {/* Gradients for text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-100"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/20 to-transparent opacity-100 md:opacity-80"></div>
+                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                  </div>
+
+                  {/* Hero Content Layer */}
+                  <div className="container mx-auto px-6 relative z-10 pb-24 pt-32 md:pb-32">
+                      <div className="max-w-4xl animate-in slide-in-from-bottom-8 duration-1000 delay-200">
+                          {/* Badge */}
+                          <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-white/10 bg-black/40 backdrop-blur-md rounded-full text-xs font-mono text-orange-500 uppercase tracking-widest mb-8">
+                             <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse shadow-[0_0_10px_#f97316]"></div>
+                             Over Mij
+                          </div>
+                          
+                          {/* Title - FIXED CLIPPING */}
+                          <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-[0.9] mb-8 text-white mix-blend-screen py-2">
+                             {aboutContent.title.includes(' ') ? (
+                                <>
+                                    {aboutContent.title.split(' ').slice(0, -1).join(' ')} <br/>
+                                    <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-500 pb-2 pr-4">
+                                        {aboutContent.title.split(' ').pop()}
+                                    </span>
+                                </>
+                             ) : (
+                                 aboutContent.title
+                             )}
+                          </h1>
+                          
+                          {/* Text */}
+                          <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-medium mb-12 max-w-2xl border-l-4 border-orange-500 pl-6 bg-gradient-to-r from-black/50 to-transparent py-2">
+                             {aboutContent.text}
+                          </p>
+                          
+                          {/* Stats Grid */}
+                          <div className="flex flex-wrap gap-6">
+                             <div className="group relative p-6 bg-black/50 backdrop-blur-md border border-white/10 rounded-sm overflow-hidden hover:border-orange-500/50 transition-colors duration-300 min-w-[180px]">
+                                <h4 className="text-4xl font-black text-orange-500 mb-1 relative z-10">4+</h4>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Jaren Prompting</p>
+                             </div>
+                             
+                             <div className="group relative p-6 bg-black/50 backdrop-blur-md border border-white/10 rounded-sm overflow-hidden hover:border-white/30 transition-colors duration-300 min-w-[180px]">
+                                <h4 className="text-4xl font-black text-white mb-1 relative z-10">150k+</h4>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Generaties</p>
+                             </div>
+
+                              <div className="group relative p-6 bg-black/50 backdrop-blur-md border border-white/10 rounded-sm overflow-hidden hover:border-white/30 transition-colors duration-300 min-w-[180px] flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-lg font-black text-white mb-1 relative z-10">AI PAPI</h4>
+                                    <p className="text-[10px] text-green-500 uppercase tracking-widest relative z-10 font-bold flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
+                                    </p>
                                 </div>
-                            </div>
-
-                            <div className="bg-black/80 backdrop-blur-md border-r-2 border-white/20 p-2 pr-4 transform translate-x-12 group-hover:translate-x-0 transition-transform duration-1000 delay-200">
-                                <p className="text-[10px] font-mono text-orange-500">ID: 0x992...A1</p>
-                            </div>
-                         </div>
-
-                         {/* Mobile Fallback HUD (Bottom) */}
-                         <div className="absolute bottom-0 left-0 right-0 p-4 md:hidden bg-gradient-to-t from-black to-transparent">
-                            <h3 className="text-2xl font-black text-white text-center">DE ARCHITECT</h3>
-                            <div className="flex justify-center gap-4 mt-2 font-mono text-xs">
-                                <span className="text-orange-500">Visual Futurist</span>
-                                <span className="text-green-500">ONLINE</span>
-                            </div>
-                         </div>
-                         
-                         {/* Deco Elements */}
-                         <div className="absolute -top-4 -left-4 w-8 h-8 border-t-2 border-l-2 border-orange-500/50"></div>
-                         <div className="absolute -bottom-4 -right-4 w-8 h-8 border-b-2 border-r-2 border-orange-500/50"></div>
+                                <Terminal className="w-8 h-8 text-gray-600 group-hover:text-white transition-colors" />
+                             </div>
+                          </div>
                       </div>
-                   </div>
-
-                   <div className="w-full md:w-1/2 space-y-8">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 border border-white/10 bg-white/5 rounded-full text-xs font-mono text-gray-400 uppercase tracking-widest backdrop-blur-sm">
-                         <div className="w-2 h-2 bg-white rounded-full"></div>
-                         Over Mij
-                      </div>
-                      
-                      <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
-                         {aboutContent.title.includes(' ') ? (
-                            <>
-                                {aboutContent.title.split(' ').slice(0, -1).join(' ')} <br/>
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-600 drop-shadow-sm">
-                                    {aboutContent.title.split(' ').pop()}
-                                </span>
-                            </>
-                         ) : (
-                             aboutContent.title
-                         )}
-                      </h1>
-                      
-                      <p className="text-xl text-gray-400 leading-relaxed max-w-lg font-medium">
-                         {aboutContent.text}
-                      </p>
-                      
-                      <div className="flex gap-6 pt-6">
-                         <div className="group relative p-6 bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-orange-500/50 transition-colors duration-300 w-40">
-                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <h4 className="text-3xl font-black text-orange-500 mb-1 relative z-10">4+</h4>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Jaren Prompting</p>
-                         </div>
-                         
-                         <div className="group relative p-6 bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-colors duration-300 w-40">
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <h4 className="text-3xl font-black text-white mb-1 relative z-10">150k+</h4>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest relative z-10">Generaties</p>
-                         </div>
-                      </div>
-                   </div>
-                </div>
+                  </div>
              </div>
 
              <div className="bg-black text-white py-32 relative overflow-hidden border-t border-white/10">
@@ -2133,6 +2096,39 @@ const App = () => {
                 </div>
             </div>
         )}
+        
+        {/* FOOTER */}
+        <footer className="border-t border-white/10 bg-black pt-16 pb-8 relative z-10">
+            <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+                <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                    <img 
+                      src="https://www.aipostershop.nl/wp-content/uploads/2025/11/AiPapiLogo.svg" 
+                      alt="Ai Papi Logo" 
+                      className="h-10 w-auto mb-4 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+                      onClick={() => navigateTo('home')}
+                    />
+                    <p className="text-gray-500 text-xs font-medium">Oranjelaan 2, Apeldoorn</p>
+                </div>
+
+                <div className="text-center">
+                    <p className="text-gray-600 text-[10px] font-mono uppercase tracking-widest flex items-center gap-2">
+                        <Terminal className="w-3 h-3" />
+                        Site vibe coded by <a href="https://wijzijnwolf.nl" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-white transition-colors border-b border-orange-500/30 hover:border-white">wijzijnwolf.nl</a>
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <a 
+                        href="https://www.instagram.com/aipapiprints/" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="group p-3 bg-white/5 rounded-full border border-white/10 hover:border-orange-500 hover:bg-orange-500/10 transition-all duration-300"
+                    >
+                        <Instagram className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                    </a>
+                </div>
+            </div>
+        </footer>
         </div> 
 
        {/* ... Modals (SelectedProduct, Contact, Commission, Cart) ... */}
