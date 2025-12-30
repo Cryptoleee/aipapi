@@ -825,10 +825,18 @@ const App = () => {
           try {
               const res = await fetch(BEHOLD_URL);
               const data = await res.json();
-              const postsArray = data.posts ? data.posts : (Array.isArray(data) ? data : []);
+              // FIX: Ensure we have an array even if data.posts is undefined or empty
+              let postsArray = data.posts ? data.posts : (Array.isArray(data) ? data : []);
+              
+              if (postsArray.length === 0) {
+                  // Manually trigger error to use fallback mocks if feed is empty
+                  throw new Error("No posts found in feed");
+              }
+              
               setInstaPosts(postsArray.slice(0, 3)); 
           } catch (e) {
               console.error("Fout bij laden Instagram feed:", e);
+              // Fallback mocks if fetch fails or returns empty
               setInstaPosts([
                     { id: 'mock1', mediaUrl: 'https://iili.io/fqFKrgf.jpg', caption: 'Liquid Chrome', permalink: 'https://www.instagram.com/aipapiprints/', mediaType: 'IMAGE' },
                     { id: 'mock2', mediaUrl: 'https://iili.io/fqFK6J4.jpg', caption: 'Neon Drift', permalink: 'https://www.instagram.com/aipapiprints/', mediaType: 'IMAGE' },
@@ -1472,7 +1480,7 @@ const App = () => {
                                     {ecoStatus === 'idle' && "100% ECO"}
                                     {ecoStatus === 'scanning' && "SCANNING..."}
                                     {ecoStatus === 'clean' && "0% TOXINS"}
-                                </h4>
+                                </h4 >
                                 <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                                     {ecoStatus === 'idle' && "Carbon Neutral"}
                                     {ecoStatus === 'scanning' && "Checking Air Quality"}
@@ -1518,6 +1526,89 @@ const App = () => {
                   </div>
                 </div>
               </div>
+            </section>
+
+             {/* INSTAGRAM FEED RESTORED & IMPROVED */}
+             <section className="py-24 bg-black relative border-t border-white/10 overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+                
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 border-b border-white/10 pb-8">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs font-mono text-orange-500 uppercase tracking-widest">Live Feed</span>
+                        </div>
+                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white uppercase leading-none">
+                            INSTA <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-500">FEED</span>
+                        </h2>
+                    </div>
+                    <div className="flex flex-col items-end">
+                         <p className="text-gray-500 text-xs font-mono mb-4 text-right hidden md:block max-w-xs">
+                            Volg onze experimenten, drops en behind-the-scenes content direct vanuit het lab.
+                         </p>
+                         <a 
+                            href="https://www.instagram.com/aipapiprints/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-3 text-white hover:text-orange-500 transition-colors"
+                        >
+                            <span className="text-sm font-bold uppercase tracking-widest">@aipapiprints</span>
+                            <div className="w-10 h-10 border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                                <ArrowRight className="w-4 h-4" />
+                            </div>
+                        </a>
+                    </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {instaPosts.map((post, index) => (
+                        <a 
+                            key={post.id} 
+                            href={post.permalink} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="group relative aspect-square bg-zinc-900 border border-white/10 overflow-hidden block"
+                        >
+                            {/* Image Layer */}
+                            <div className="absolute inset-0">
+                                {post.mediaType === 'VIDEO' ? (
+                                    <video src={post.mediaUrl} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" loop muted playsInline autoPlay />
+                                ) : (
+                                    <img src={post.mediaUrl} alt={post.caption || 'Instagram Post'} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                                )}
+                            </div>
+                            
+                            {/* Scanline Effect (Subtle tech vibe) */}
+                            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.3)_50%)] bg-[length:100%_4px] pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity"></div>
+
+                            {/* Bottom Gradient Overlay (Not solid black) */}
+                            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300"></div>
+
+                            {/* Content Overlay */}
+                            <div className="absolute inset-0 flex flex-col justify-end p-6">
+                                 <div className="translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest bg-black/50 px-2 py-1 rounded border border-orange-500/20 backdrop-blur-sm">
+                                            FEED_ITEM_0{index + 1}
+                                        </span>
+                                        <div className="bg-white text-black p-1.5 rounded-full">
+                                            <ArrowRight className="w-3 h-3" />
+                                        </div>
+                                    </div>
+                                    <p className="text-white text-xs font-medium line-clamp-2 leading-relaxed opacity-90">
+                                        {post.caption || 'View on Instagram'}
+                                    </p>
+                                 </div>
+                            </div>
+
+                            {/* Border Highlight on Hover */}
+                            <div className="absolute inset-0 border border-orange-500/0 group-hover:border-orange-500/50 transition-colors duration-500 pointer-events-none"></div>
+                        </a>
+                    ))}
+                    </div>
+                </div>
             </section>
           </div>
         )}
@@ -2070,7 +2161,7 @@ const App = () => {
        {selectedProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-700" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative w-full max-w-6xl h-full md:h-[85vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col md:grid md:grid-cols-12 rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
+          <div className="relative w-full max-w-6xl h-full md:h-[85vh] bg-black border border-white/10 shadow-2xl overflow-hidden flex flex-col rounded-lg animate-in zoom-in-[0.95] fade-in duration-500 slide-in-from-bottom-8 ease-out-expo">
              
              {/* --- MOBILE LAYOUT (< md) --- */}
              <div className="md:hidden relative w-full h-full bg-black">
@@ -2169,7 +2260,7 @@ const App = () => {
              </div>
 
              {/* --- DESKTOP LAYOUT (md+) --- */}
-             <div className="hidden md:flex h-full col-span-12">
+             <div className="hidden md:flex w-full h-full">
                  <div className="relative w-[60%] h-full bg-black flex items-center justify-center overflow-hidden group">
                      {/* IMAGE - NO PADDING */}
                      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none"></div>
@@ -2192,20 +2283,20 @@ const App = () => {
                      </div>
                  </div>
                  
-                 <div className="w-[40%] bg-zinc-950 p-8 flex flex-col h-full border-l border-white/10 relative">
-                     <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 z-20 bg-transparent hover:bg-white hover:text-black text-gray-500 p-2 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+                 <div className="w-[40%] bg-zinc-950 h-full border-l border-white/10 flex flex-col relative">
+                     <button onClick={() => setSelectedProduct(null)} className="absolute top-6 right-6 z-30 text-gray-500 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
 
-                     <div className="mb-1">
-                        <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">{selectedProduct.category}</span>
-                     </div>
-                     <h2 className="text-5xl font-black mb-2 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
-                     <p className="text-2xl font-bold text-gray-300 mb-6">€{currentPrice.toFixed(2)}</p>
+                     {/* Scrollable Content Area - Spans flex-1 */}
+                     <div className="flex-1 overflow-y-auto custom-scrollbar p-8 min-h-0">
+                        <div className="mb-1 mt-2">
+                            <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">{selectedProduct.category}</span>
+                        </div>
+                        <h2 className="text-5xl font-black mb-2 tracking-tighter leading-[0.9] text-white uppercase">{selectedProduct.title}</h2>
+                        <p className="text-2xl font-bold text-gray-300 mb-6">€{currentPrice.toFixed(2)}</p>
 
-                     {/* Product Description Filling the Void */}
-                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
                         <p className="text-gray-400 text-sm leading-relaxed">{selectedProduct.desc}</p>
                         
-                        <div className="pt-4 border-t border-white/5 space-y-3">
+                        <div className="pt-4 mt-6 border-t border-white/5 space-y-3">
                             <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-2">Specifications</h4>
                             <div className="grid grid-cols-2 gap-2 text-[10px] text-gray-500 font-mono uppercase">
                                 <div className="flex items-center gap-2"><Layers className="w-3 h-3 text-gray-400" /> 250g/m² Satin</div>
@@ -2216,7 +2307,9 @@ const App = () => {
                         </div>
                      </div>
 
-                      <div className="mt-6 pt-6 border-t border-white/10 space-y-4">
+                      {/* Flex Item Footer - Stays at bottom */}
+                      <div className="p-8 pt-6 border-t border-white/10 space-y-4 bg-zinc-950 shrink-0 z-20 relative">
+                         {/* Select Size and Add to Cart Buttons */}
                          <div className="space-y-2">
                             <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-500">
                                <span>Select Size</span>
@@ -2238,7 +2331,6 @@ const App = () => {
                                     </button>
                                 ))
                                 ) : (
-                                // ... fallback ...
                                 <>
                                     <button onClick={() => setSelectedSize('A1')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all duration-300 ${selectedSize === 'A1' ? 'border-white bg-white text-black' : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/30'}`}>A1</button>
                                     <button onClick={() => setSelectedSize('A2')} className={`flex-1 py-3 text-xs font-bold border rounded-sm transition-all duration-300 ${selectedSize === 'A2' ? 'border-white bg-white text-black' : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/30'}`}>A2</button>
