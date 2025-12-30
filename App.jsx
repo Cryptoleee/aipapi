@@ -591,7 +591,7 @@ const App = () => {
   // --- WORDPRESS CONTENT STATE ---
   const [aboutContent, setAboutContent] = useState({
     title: "Wie is Ai Papi?",
-    text: "Ai Papi is een initiatief van wijzijnwolf.nl We zijn een stel creatievelingen die obsessed zijn met alle ontwikkeling van Ai. Iedere dag volgen we de laatste updates en verfijnen we onze kennis. Altijd up 2 date. Combineer dat met onze liefde voor contemporary fotografie, (digitale) kunst en je hebt een perfect mix om zelf aan de slag te gaan en vette dingen te maken."
+    text: "Ai Papi is een initiatief van mij, Leroy Filon, werkzaam bij wijzijnwolf.nl. Beesten in design, video en web. Ik zelf ben obsessed door de ontwikkeling van Ai. Iedere dag volg ik de laatste updates en verfijn ik mijn kennis. Altijd up 2 date. Mijn liefde voor contemporary fotografie, (digitale) kunst en Ai hebben ervoor gezorgd dat Ai Papi is ontstaan als showcase om mijn creatieve uitspattingen te tonen en aan te bieden."
   });
 
   // --- FETCH PAYMENT GATEWAYS ---
